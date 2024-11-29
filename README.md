@@ -5,7 +5,7 @@ This README provides an overview and the step-by-step tasks required to complete
 ---
 
 ## Project Repository
-- **Details-App Source Repository**: [next-face-detection-app](https://github.com/DanorSODA/next-face-detection-app)
+- **Next-face-detection-app Source Repository**: [next-face-detection-app](https://github.com/DanorSODA/next-face-detection-app)
 - **Final Project Repository**: [DevOps-Course-Final-Project](https://github.com/DanorSODA/Devops-Course-Final-Project)
 
 ---

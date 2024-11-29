@@ -68,7 +68,7 @@ The following technologies will be used for this project:
 
 ### **Phase 4: Deploy the Application on K3s**
 1. Write Kubernetes YAML files to:
-   - Define a Deployment for the `details-app` application.
+   - Define a Deployment for the `next-face-detection-app` application.
    - Expose the application using a Service (LoadBalancer type).
    - Configure environment variables for database access.
 2. Push the Kubernetes YAML files to the `k8s/` folder.
@@ -110,8 +110,8 @@ The following technologies will be used for this project:
 
          - name: Build and Push Docker Image
            run: |
-             docker build -t <your-dockerhub-username>/details-app:latest .
-             docker push <your-dockerhub-username>/details-app:latest
+             docker build -t <your-dockerhub-username>/next-face-detection-app:latest .
+             docker push <your-dockerhub-username>/next-face-detection-app:latest
 
      deploy:
        needs: build

@@ -1,11 +1,11 @@
 # DevOps Final Project
 
-This README provides an overview and the step-by-step tasks required to complete the deployment of the `details-app` project using a DevOps pipeline. The project will utilize GitHub Actions for CI/CD, and the infrastructure will be deployed on AWS with tools like Docker, Terraform, Ansible, K3s, and Jenkins. The implementation will follow best practices for infrastructure as code (IaC), containerization, and CI/CD pipelines.
+This README provides an overview and the step-by-step tasks required to complete the deployment of the `next-face-detection-app`  Next.js project using a DevOps pipeline. The project will utilize GitHub Actions for CI/CD, and the infrastructure will be deployed on AWS with tools like Docker, Terraform, Ansible, K3s, and Jenkins. The implementation will follow best practices for infrastructure as code (IaC), containerization, and CI/CD pipelines.
 
 ---
 
 ## Project Repository
-- **Details-App Source Repository**: [details-app](https://github.com/zero-pytagoras/details-app)
+- **Details-App Source Repository**: [next-face-detection-app](https://github.com/DanorSODA/next-face-detection-app)
 - **Final Project Repository**: [DevOps-Course-Final-Project](https://github.com/DanorSODA/Devops-Course-Final-Project)
 
 ---
@@ -23,15 +23,15 @@ The following technologies will be used for this project:
 
 ## Tasks Overview
 ### **Phase 1: Repository Setup**
-1. Fork the `details-app` repository into your GitHub account.
+1. Fork the `next-face-detection-app` repository into your GitHub account.
 2. Clone the forked repository locally and add it as a submodule to your final project repository:
    ```bash
-   git submodule add https://github.com/zero-pytagoras/details-app
+   git submodule add https://github.com/DanorSODA/next-face-detection-app
    ```
 3. Set up the project repository with the following folder structure:
    ```
    Devops-Course-Final-Project/
-   |-- details-app/         # Submodule for the application source code
+   |-- next-face-detection-app/         # Submodule for the application source code
    |-- terraform/           # Terraform configuration files
    |-- ansible/             # Ansible playbooks for configuration management
    |-- k8s/                 # K3s deployment YAML files
@@ -83,7 +83,7 @@ The following technologies will be used for this project:
 ### **Phase 5: CI/CD Pipeline with GitHub Actions**
 1. Set up a GitHub Actions workflow for:
    - **CI Tasks**:
-     - Run static code analysis (e.g., Flake8) on the `details-app` source code.
+     - Run static code analysis (e.g., Flake8) on the `next-face-detection-app` source code.
      - Build and push a Docker image of the application to DockerHub.
    - **CD Tasks**:
      - Deploy the application to the K3s cluster using `kubectl`.

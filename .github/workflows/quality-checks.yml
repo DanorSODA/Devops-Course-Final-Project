@@ -1,4 +1,4 @@
-name: Quality Checks
+name: Quality Checks and Docker Build
 
 on:
   push:
@@ -57,3 +57,36 @@ jobs:
       - name: Build check
         run: yarn build
         continue-on-error: false
+
+  docker:
+    needs: quality
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' # Only run on main branch pushes
+    defaults:
+      run:
+        working-directory: next-face-detection-app
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: danors
+          password: "${{ secrets.DOCKERHUB_TOKEN }}"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./next-face-detection-app
+          push: true
+          tags: |
+            danors/next-face-detection:latest
+            danors/next-face-detection:${{ github.sha }}
+          cache-from: type=registry,ref=danors/next-face-detection:buildcache
+          cache-to: type=registry,ref=danors/next-face-detection:buildcache,mode=max

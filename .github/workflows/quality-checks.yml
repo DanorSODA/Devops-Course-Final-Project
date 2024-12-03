@@ -1,42 +1,73 @@
+# Workflow name as displayed in GitHub Actions UI
 name: Quality Checks and Docker Build
 
+# Define when this workflow will run
 on:
   push:
     branches:
-      - main
-    paths:
-      - "next-face-detection-app/**"
+      - main # Run on pushes to main branch
   pull_request:
-    paths:
-      - "next-face-detection-app/**"
-  workflow_dispatch:
+    branches:
+      - main # Run on PRs targeting main branch
+  repository_dispatch:
+    types: [submodule_update] # Run when submodule update event is dispatched
+  workflow_dispatch: # Allow manual triggering from GitHub UI
 
+# Define the sequence of jobs to run
 jobs:
+  # First job: Check if the submodule has changed
+  check_submodule:
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.check.outputs.has_changes }} # Output variable for other jobs
+    steps:
+      # Checkout repository with submodules
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive" # Get all submodules
+          fetch-depth: 0 # Fetch all history for accurate diff
+
+      # Check for changes in the next-face-detection-app submodule
+      - id: check
+        name: Check for submodule changes
+        run: |
+          git fetch origin main
+          SUBMODULE_CHANGED=$(git diff origin/main HEAD next-face-detection-app | wc -l)
+          echo "has_changes=$([[ $SUBMODULE_CHANGED -gt 0 ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+
+  # Second job: Run quality checks
   quality:
+    needs: check_submodule # Wait for check_submodule job to complete
+    if: needs.check_submodule.outputs.has_changes == 'true' # Only run if submodule changed
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: next-face-detection-app
+        working-directory: next-face-detection-app # Set working directory for all steps
 
     steps:
+      # Checkout repository with submodules
       - uses: actions/checkout@v3
         with:
           submodules: "recursive"
 
+      # Setup Node.js environment
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "20"
-          cache: "yarn"
+          cache: "yarn" # Enable Yarn dependency caching
           cache-dependency-path: next-face-detection-app/yarn.lock
 
+      # Install project dependencies
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile # Install exact versions from yarn.lock
 
+      # Run TypeScript type checking
       - name: Type check
         run: yarn type-check
-        continue-on-error: false
+        continue-on-error: false # Fail workflow if types are invalid
 
+      # Run ESLint checks
       - name: Lint
         run: |
           yarn lint > lint-results.txt || {
@@ -48,45 +79,48 @@ jobs:
               exit 0
             fi
           }
-        continue-on-error: true
 
+      # Check code formatting with Prettier
       - name: Format check
         run: yarn format --check
-        continue-on-error: false
+        continue-on-error: false # Fail workflow if formatting is incorrect
 
-      - name: Build check
-        run: yarn build
-        continue-on-error: false
-
+  # Third job: Build and push Docker image
   docker:
-    needs: quality
+    needs: [check_submodule, quality] # Wait for both previous jobs
+    if: |
+      needs.check_submodule.outputs.has_changes == 'true' && 
+      github.event_name != 'pull_request'  # Don't push Docker images for PRs
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' # Only run on main branch pushes
     defaults:
       run:
         working-directory: next-face-detection-app
 
     steps:
+      # Checkout repository with submodules
       - uses: actions/checkout@v3
         with:
           submodules: "recursive"
 
+      # Setup Docker Buildx for multi-platform builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Login to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: danors
-          password: "${{ secrets.DOCKERHUB_TOKEN }}"
+          username: danors # Docker Hub username
+          password: ${{ secrets.DOCKERHUB_TOKEN }} # Docker Hub access token from GitHub secrets
 
+      # Build and push Docker image
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./next-face-detection-app
-          push: true
-          tags: |
+          context: ./next-face-detection-app # Build context directory
+          push: true # Push the image to Docker Hub
+          tags: | # Image tags
             danors/next-face-detection:latest
             danors/next-face-detection:${{ github.sha }}
-          cache-from: type=registry,ref=danors/next-face-detection:buildcache
-          cache-to: type=registry,ref=danors/next-face-detection:buildcache,mode=max
+          cache-from: type=registry,ref=danors/next-face-detection:buildcache # Use registry cache
+          cache-to: type=registry,ref=danors/next-face-detection:buildcache,mode=max # Update registry cache

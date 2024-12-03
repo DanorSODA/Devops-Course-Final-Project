@@ -1,8 +1,10 @@
 name: Update Submodule
 
 on:
-  schedule:
-    - cron: "0 0 * * *" # Runs daily at midnight
+  push:
+    branches:
+      - main
+
   workflow_dispatch: # Allows manual trigger
 
 permissions:

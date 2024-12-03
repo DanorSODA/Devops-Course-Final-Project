@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set error handling
-set -e
+set -ex
 
 echo "Starting submodule update process..."
 
@@ -11,7 +11,6 @@ cd "$(git rev-parse --show-toplevel)/next-face-detection-app"
 # Fetch and pull the latest changes
 echo "Fetching latest changes..."
 git fetch origin
-git checkout main
 git pull origin main
 
 # Navigate back to the main repository

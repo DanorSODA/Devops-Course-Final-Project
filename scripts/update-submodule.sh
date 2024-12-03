@@ -18,9 +18,18 @@ git fetch origin || {
     exit 1
 }
 
+# Check if HEAD is detached
+if ! git symbolic-ref -q HEAD >/dev/null; then
+    echo "HEAD is detached. Checking out main branch..."
+    git checkout main || {
+        echo "Error: Failed to checkout main branch"
+        exit 1
+    }
+fi
+
 # Check if we're already up to date
 LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse @{u})
+REMOTE=$(git rev-parse origin/main)
 
 if [ "$LOCAL" = "$REMOTE" ]; then
     echo "Submodule is already up to date. No changes needed."

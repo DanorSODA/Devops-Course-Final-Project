@@ -32,4 +32,3 @@ jobs:
           ./scripts/update-submodule.sh
         env:
           TOKEN: "${{ secrets.PAT }}"
-          GITHUB_REPOSITORY: ${{ github.repository }}

@@ -18,35 +18,15 @@ git fetch --all || {
     exit 1
 }
 
-# Check if HEAD is detached
-if ! git symbolic-ref -q HEAD >/dev/null; then
-    echo "HEAD is detached. Checking out main branch..."
-    # Save any uncommitted changes to a temporary branch
-    TEMP_BRANCH="temp-$(date +%s)"
-    CURRENT_COMMIT=$(git rev-parse HEAD)
-    git branch "$TEMP_BRANCH" "$CURRENT_COMMIT"
-    
-    # Checkout main
-    git checkout main || {
-        echo "Error: Failed to checkout main branch"
-        exit 1
-    }
-    
-    # Try to merge the temporary branch if it contains changes
-    if [ "$CURRENT_COMMIT" != "$(git rev-parse main)" ]; then
-        echo "Attempting to merge changes from detached HEAD..."
-        git merge "$TEMP_BRANCH" || {
-            echo "Warning: Merge conflicts detected. Please resolve manually."
-            git merge --abort
-            exit 1
-        }
-    fi
-fi
+# Checkout the main branch and reset to the latest commit
+echo "Checking out and resetting to the latest commit on main branch..."
+git checkout main || {
+    echo "Error: Failed to checkout main branch"
+    exit 1
+}
 
-# Pull latest changes
-echo "Pulling latest changes..."
-git pull origin main || {
-    echo "Error: Failed to pull changes"
+git reset --hard origin/main || {
+    echo "Error: Failed to reset to the latest commit on main branch"
     exit 1
 }
 

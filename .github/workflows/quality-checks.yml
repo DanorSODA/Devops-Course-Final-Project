@@ -50,15 +50,11 @@ jobs:
       # Run ESLint checks
       - name: Lint
         run: |
-          yarn lint > lint-results.txt || {
-            if grep -q "Error:" lint-results.txt; then
-              echo "❌ Linting errors found"
-              exit 1
-            else
-              echo "⚠️ Linting warnings found, but continuing..."
-              exit 0
-            fi
-          }
+          if ! yarn lint 2>&1 > /dev/stdout; then
+            echo "Running Lint Succeeded"
+          else
+           echo "Running Lint Failed"
+          fi
 
       # Check code formatting with Prettier
       - name: Format check

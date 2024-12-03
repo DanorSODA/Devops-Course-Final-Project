@@ -5,22 +5,29 @@ name: Quality Checks and Docker Build
 on:
   push:
     branches:
-      - main # Run on pushes to main branch
+      - main
   pull_request:
     branches:
-      - main # Run on PRs targeting main branch
+      - main
   repository_dispatch:
-    types: [submodule_update] # Run when submodule update event is dispatched
-  workflow_dispatch: # Allow manual triggering from GitHub UI
+    types: [submodule_update]
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Update Submodule"]
+    types:
+      - completed
+    branches:
+      - main
 
 # Define the sequence of jobs to run
 jobs:
   # First job: Run quality checks
   quality:
+    needs: update
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: next-face-detection-app # Set working directory for all steps
+        working-directory: next-face-detection-app
 
     steps:
       # Checkout repository with submodules

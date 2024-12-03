@@ -61,4 +61,14 @@ git push origin main || {
     exit 1
 }
 
+# Trigger quality checks only when there are actual changes
+echo "Triggering quality checks..."
+curl -L \
+  -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/repos/${GITHUB_REPOSITORY}/dispatches \
+  -d '{"event_type":"submodule_update"}'
+
 echo "Submodule update completed successfully!"

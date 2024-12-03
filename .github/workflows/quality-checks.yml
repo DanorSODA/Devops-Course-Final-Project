@@ -9,12 +9,6 @@ on:
   repository_dispatch:
     types: [submodule_update]
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Update Submodule"]
-    types:
-      - completed
-    branches:
-      - main
 
 # Define the sequence of jobs to run
 jobs:

@@ -23,7 +23,6 @@ on:
 jobs:
   # First job: Run quality checks
   quality:
-    needs: update
     runs-on: ubuntu-latest
     defaults:
       run:

@@ -16,14 +16,17 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
-          token: "${{ PAT }}"
 
       - name: Configure Git
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'github-actions@github.com'
+        env:
+          TOKEN: "${{ secrets.PAT }}"
 
       - name: Run update script
         run: |
           chmod +x ./scripts/update-submodule.sh
           ./scripts/update-submodule.sh
+        env:
+          TOKEN: "${{ secrets.PAT }}"

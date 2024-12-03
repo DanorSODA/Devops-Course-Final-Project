@@ -1,0 +1,3 @@
+[submodule "next-face-detection-app"]
+	path = next-face-detection-app
+	url = git@github.com:DanorSODA/next-face-detection-app.git

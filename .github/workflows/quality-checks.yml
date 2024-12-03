@@ -3,21 +3,22 @@ name: Quality Checks and Docker Build
 
 # Define when this workflow will run
 on:
-  push:
-    branches:
-      - main # Run on pushes to main branch
   pull_request:
     branches:
-      - main # Run on PRs targeting main branch
-  repository_dispatch:
-    types: [submodule_update] # Run when submodule update event is dispatched
-  workflow_dispatch: # Allow manual triggering from GitHub UI
+      - main
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Update Submodule"]
+    types:
+      - completed
+    branches:
+      - main
 
 # Define the sequence of jobs to run
 jobs:
   # First job: Run quality checks
   quality:
-    needs: update
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} # Only run if update job succeeded
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -101,3 +102,4 @@ jobs:
             danors/next-face-detection:${{ github.sha }}
           cache-from: type=registry,ref=danors/next-face-detection:buildcache # Use registry cache
           cache-to: type=registry,ref=danors/next-face-detection:buildcache,mode=max # Update registry cache
+

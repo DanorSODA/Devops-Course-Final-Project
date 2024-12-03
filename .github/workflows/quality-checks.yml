@@ -1,0 +1,46 @@
+name: Quality Checks
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "next-face-detection-app/**"
+  pull_request:
+    paths:
+      - "next-face-detection-app/**"
+  workflow_dispatch:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: next-face-detection-app
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: next-face-detection-app/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Type check
+        run: yarn type-check
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Format check
+        run: yarn format --check
+
+      - name: Build check
+        run: yarn build

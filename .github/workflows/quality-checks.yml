@@ -15,30 +15,8 @@ on:
 
 # Define the sequence of jobs to run
 jobs:
-  # First job: Check if the submodule has changed
-  check_submodule:
-    runs-on: ubuntu-latest
-    outputs:
-      has_changes: ${{ steps.check.outputs.has_changes }} # Output variable for other jobs
-    steps:
-      # Checkout repository with submodules
-      - uses: actions/checkout@v3
-        with:
-          submodules: "recursive" # Get all submodules
-          fetch-depth: 0 # Fetch all history for accurate diff
-
-      # Check for changes in the next-face-detection-app submodule
-      - id: check
-        name: Check for submodule changes
-        run: |
-          git fetch origin main
-          SUBMODULE_CHANGED=$(git diff origin/main HEAD next-face-detection-app | wc -l)
-          echo "has_changes=$([[ $SUBMODULE_CHANGED -gt 0 ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
-
-  # Second job: Run quality checks
+  # First job: Run quality checks
   quality:
-    needs: check_submodule # Wait for check_submodule job to complete
-    if: needs.check_submodule.outputs.has_changes == 'true' # Only run if submodule changed
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -85,11 +63,10 @@ jobs:
         run: yarn format --check
         continue-on-error: false # Fail workflow if formatting is incorrect
 
-  # Third job: Build and push Docker image
+  # Second job: Build and push Docker image
   docker:
-    needs: [check_submodule, quality] # Wait for both previous jobs
-    # Only run if submodule changed and not a PR
-    if: needs.check_submodule.outputs.has_changes == 'true' && github.event_name != 'pull_request'
+    needs: quality # Wait for quality job to complete
+    if: github.event_name != 'pull_request' # Don't run on PRs
     runs-on: ubuntu-latest
     defaults:
       run:

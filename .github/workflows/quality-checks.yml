@@ -88,9 +88,8 @@ jobs:
   # Third job: Build and push Docker image
   docker:
     needs: [check_submodule, quality] # Wait for both previous jobs
-    if: |
-      needs.check_submodule.outputs.has_changes == 'true' && 
-      github.event_name != 'pull_request'  # Don't push Docker images for PRs
+    # Only run if submodule changed and not a PR
+    if: needs.check_submodule.outputs.has_changes == 'true' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     defaults:
       run:

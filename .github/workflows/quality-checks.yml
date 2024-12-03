@@ -50,10 +50,10 @@ jobs:
       # Run ESLint checks
       - name: Lint
         run: |
-          if ! yarn lint 2>&1 > /dev/stdout; then
-            echo "Running Lint Succeeded"
+          if yarn lint ; then
+            echo "Running Lint Succeeded"; exit 0
           else
-           echo "Running Lint Failed"
+           echo "Running Lint Failed"; exit 1
           fi
 
       # Check code formatting with Prettier

@@ -3,9 +3,6 @@ name: Quality Checks and Docker Build
 
 # Define when this workflow will run
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main

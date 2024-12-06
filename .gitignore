@@ -91,3 +91,4 @@ kubeconfig
 *.tmp
 *.temp
 .cache/
+.vscode/

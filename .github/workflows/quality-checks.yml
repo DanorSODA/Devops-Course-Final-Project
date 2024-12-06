@@ -99,3 +99,35 @@ jobs:
           cache-from: type=registry,ref=danors/next-face-detection:buildcache # Use registry cache
           cache-to: type=registry,ref=danors/next-face-detection:buildcache,mode=max # Update registry cache
 
+  deploy:
+    needs: docker # Wait for docker job to complete
+    if: github.event_name != 'pull_request' # Don't run on PRs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+
+      # Setup kubectl
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      # Setup kubeconfig for k3s
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      # Cleanup existing deployment
+      - name: Cleanup existing deployment
+        run: |
+          chmod +x scripts/cleanup.sh
+          ./scripts/cleanup.sh
+
+      # Deploy the new version
+      - name: Deploy to k3s
+        run: |
+          chmod +x scripts/k8s-apply.sh
+          ./scripts/k8s-apply.sh production

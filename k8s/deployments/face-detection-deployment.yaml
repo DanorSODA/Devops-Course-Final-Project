@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: face-detection-app
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: face-detection
+  template:
+    metadata:
+      labels:
+        app: face-detection
+    spec:
+      containers:
+        - name: face-detection
+          image: danors/next-face-detection:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          envFrom:
+            - configMapRef:
+                name: face-detection-config

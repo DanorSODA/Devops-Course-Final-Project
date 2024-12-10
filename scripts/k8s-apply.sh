@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Add AWS authentication
+aws eks update-kubeconfig --region your-region --name your-cluster-name
+
 # Default to local environment if not specified
 ENVIRONMENT=${1:-local}
 VALUES_FILE="k8s/values/${ENVIRONMENT}.yaml"

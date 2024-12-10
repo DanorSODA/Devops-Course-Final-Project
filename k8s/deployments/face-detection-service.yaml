@@ -4,11 +4,10 @@ metadata:
   name: face-detection-service
   namespace: default
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 80
       targetPort: 3000
-      nodePort: 30182
       protocol: TCP
   selector:
     app: face-detection

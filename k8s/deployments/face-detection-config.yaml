@@ -4,4 +4,4 @@ metadata:
   name: face-detection-config
 data:
   NODE_ENV: "production"
-  NEXT_PUBLIC_API_URL: "http://localhost:30182"
+  NEXT_PUBLIC_API_URL: "http://your-alb-dns-name"

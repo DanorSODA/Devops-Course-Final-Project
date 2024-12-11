@@ -1,3 +1,13 @@
+terraform {
+  backend "s3" {
+    bucket         = "DevOps-Tech-Courseterraform-state"
+    key            = "k8s-cluster/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "terraform-state-lock"
+  }
+}
+
 data "aws_ami" "ubuntu" {
   most_recent = true
   filter {
@@ -17,21 +27,21 @@ resource "aws_vpc" "k8s_vpc" {
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = {
-    Name = "k8s-vpc"
-  }
+  tags = merge(var.tags, {
+    Name = "${var.cluster_name}-vpc"
+  })
 }
 
 # Public Subnet
 resource "aws_subnet" "k8s_subnet" {
   vpc_id                  = aws_vpc.k8s_vpc.id
-  cidr_block              = "10.0.1.0/24"
+  cidr_block              = var.subnet_cidr
   map_public_ip_on_launch = true
-  availability_zone       = "${var.aws_region}a"
+  availability_zone       = "${var.aws_region}${var.availability_zone}"
 
-  tags = {
-    Name = "k8s-subnet"
-  }
+  tags = merge(var.tags, {
+    Name = "${var.cluster_name}-subnet"
+  })
 }
 
 # Internet Gateway
@@ -68,20 +78,34 @@ resource "aws_instance" "k8s_master" {
   instance_type = var.instance_type_master
 
   subnet_id                   = aws_subnet.k8s_subnet.id
-  vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
+  vpc_security_group_ids      = concat(
+    [aws_security_group.k8s_sg.id],
+    var.additional_master_security_groups
+  )
   associate_public_ip_address = true
   key_name                   = aws_key_pair.k8s_key.key_name
 
   user_data = file("${path.module}/scripts/install_k8s_master.sh")
 
-  tags = {
-    Name = "k8s-master"
-    Role = "master"
-  }
+  monitoring = var.enable_detailed_monitoring
 
   root_block_device {
-    volume_size = 20
+    volume_size = var.instance_root_volume_size
+    volume_type = var.root_volume_type
+    iops        = var.root_volume_type == "io1" || var.root_volume_type == "io2" ? var.root_volume_iops : null
   }
+
+  tags = merge(
+    var.tags,
+    var.master_additional_tags,
+    {
+      Name        = "${var.cluster_name}-master"
+      Role        = "master"
+      Environment = var.environment
+      Owner       = var.owner
+      CostCenter  = var.cost_center
+    }
+  )
 }
 
 # Worker Nodes
@@ -91,20 +115,34 @@ resource "aws_instance" "k8s_workers" {
   instance_type = var.instance_type_worker
 
   subnet_id                   = aws_subnet.k8s_subnet.id
-  vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
+  vpc_security_group_ids      = concat(
+    [aws_security_group.k8s_sg.id],
+    var.additional_worker_security_groups
+  )
   associate_public_ip_address = true
   key_name                   = aws_key_pair.k8s_key.key_name
 
   user_data = file("${path.module}/scripts/install_k8s_worker.sh")
 
-  tags = {
-    Name = "k8s-worker-${count.index + 1}"
-    Role = "worker"
-  }
+  monitoring = var.enable_detailed_monitoring
 
   root_block_device {
-    volume_size = 20
+    volume_size = var.instance_root_volume_size
+    volume_type = var.root_volume_type
+    iops        = var.root_volume_type == "io1" || var.root_volume_type == "io2" ? var.root_volume_iops : null
   }
+
+  tags = merge(
+    var.tags,
+    var.worker_additional_tags,
+    {
+      Name        = "${var.cluster_name}-worker-${count.index + 1}"
+      Role        = "worker"
+      Environment = var.environment
+      Owner       = var.owner
+      CostCenter  = var.cost_center
+    }
+  )
 }
 
 # Security Group

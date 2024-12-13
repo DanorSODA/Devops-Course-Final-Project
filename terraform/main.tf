@@ -1,11 +1,11 @@
 terraform {
-  backend "s3" {
-    bucket         = "DevOps-Tech-Courseterraform-state"
-    key            = "k8s-cluster/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "terraform-state-lock"
-  }
+  # backend "s3" {
+  #   bucket         = "devops-tech-course-terraform-state"
+  #   key            = "k8s-cluster/terraform.tfstate"
+  #   region         = "us-east-1"
+  #   encrypt        = true
+  #   dynamodb_table = "terraform-state-lock"
+  # }
 }
 
 data "aws_ami" "ubuntu" {
@@ -147,8 +147,8 @@ resource "aws_instance" "k8s_workers" {
 
 # Security Group
 resource "aws_security_group" "k8s_sg" {
-  name        = "k8s-sg"
-  description = "Security group for Kubernetes cluster"
+  name        = "k8s-face-detection-sg"
+  description = "Security group for face detection Kubernetes cluster"
   vpc_id      = aws_vpc.k8s_vpc.id
 
   # Allow inbound HTTP traffic for the application
@@ -161,22 +161,22 @@ resource "aws_security_group" "k8s_sg" {
   }
 
   # Allow inbound HTTPS traffic
-  ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # ingress {
+  #   description = "HTTPS"
+  #   from_port   = 443
+  #   to_port     = 443
+  #   protocol    = "tcp"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  # }
 
   # Kubernetes API server
-  ingress {
-    description = "Kubernetes API server"
-    from_port   = 6443
-    to_port     = 6443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # ingress {
+  #   description = "Kubernetes API server"
+  #   from_port   = 6443
+  #   to_port     = 6443
+  #   protocol    = "tcp"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  # }
 
   # Allow all internal communication between nodes
   ingress {
@@ -187,23 +187,23 @@ resource "aws_security_group" "k8s_sg" {
     self        = true
   }
 
-  # NodePort range (for services)
-  ingress {
-    description = "NodePort Services"
-    from_port   = 30000
-    to_port     = 32767
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # # NodePort range (for services)
+  # ingress {
+  #   description = "NodePort Services"
+  #   from_port   = 30000
+  #   to_port     = 32767
+  #   protocol    = "tcp"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  # }
 
   # Container port for your application
-  ingress {
-    description = "Application container port"
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # ingress {
+  #   description = "Application container port"
+  #   from_port   = 3000
+  #   to_port     = 3000
+  #   protocol    = "tcp"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  # }
 
   # SSH access
   ingress {

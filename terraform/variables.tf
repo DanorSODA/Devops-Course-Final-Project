@@ -58,18 +58,6 @@ variable "ssh_key_name" {
   default     = "k8s-key"
 }
 
-variable "backend_bucket" {
-  description = "S3 bucket name for terraform state"
-  type        = string
-  default     = "DevOps-Tech-Courseterraform-state"
-}
-
-variable "backend_dynamodb_table" {
-  description = "DynamoDB table name for terraform state locking"
-  type        = string
-  default     = "terraform-state-lock"
-}
-
 variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)

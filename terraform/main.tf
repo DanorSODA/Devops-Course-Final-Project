@@ -78,10 +78,7 @@ resource "aws_instance" "k8s_master" {
   instance_type = var.instance_type_master
 
   subnet_id                   = aws_subnet.k8s_subnet.id
-  vpc_security_group_ids      = concat(
-    [aws_security_group.k8s_sg.id],
-    var.additional_master_security_groups
-  )
+  vpc_security_group_ids      = [aws_security_group.k8s_sg.id, aws_security_group.lb_sg.id]
   associate_public_ip_address = true
   key_name                   = aws_key_pair.k8s_key.key_name
 
@@ -115,10 +112,7 @@ resource "aws_instance" "k8s_workers" {
   instance_type = var.instance_type_worker
 
   subnet_id                   = aws_subnet.k8s_subnet.id
-  vpc_security_group_ids      = concat(
-    [aws_security_group.k8s_sg.id],
-    var.additional_worker_security_groups
-  )
+  vpc_security_group_ids      = [aws_security_group.k8s_sg.id, aws_security_group.lb_sg.id]
   associate_public_ip_address = true
   key_name                   = aws_key_pair.k8s_key.key_name
 
@@ -145,84 +139,138 @@ resource "aws_instance" "k8s_workers" {
   )
 }
 
-# Security Group
+# Security Group for K8s nodes (master and workers)
 resource "aws_security_group" "k8s_sg" {
   name        = "k8s-face-detection-sg"
   description = "Security group for face detection Kubernetes cluster"
   vpc_id      = aws_vpc.k8s_vpc.id
 
-  # Allow inbound HTTP traffic for the application
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow inbound HTTPS traffic
-  # ingress {
-  #   description = "HTTPS"
-  #   from_port   = 443
-  #   to_port     = 443
-  #   protocol    = "tcp"
-  #   cidr_blocks = ["0.0.0.0/0"]
-  # }
-
-  # Kubernetes API server
-  # ingress {
-  #   description = "Kubernetes API server"
-  #   from_port   = 6443
-  #   to_port     = 6443
-  #   protocol    = "tcp"
-  #   cidr_blocks = ["0.0.0.0/0"]
-  # }
-
-  # Allow all internal communication between nodes
-  ingress {
-    description = "Internal cluster communication"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    self        = true
-  }
-
-  # # NodePort range (for services)
-  # ingress {
-  #   description = "NodePort Services"
-  #   from_port   = 30000
-  #   to_port     = 32767
-  #   protocol    = "tcp"
-  #   cidr_blocks = ["0.0.0.0/0"]
-  # }
-
-  # Container port for your application
-  # ingress {
-  #   description = "Application container port"
-  #   from_port   = 3000
-  #   to_port     = 3000
-  #   protocol    = "tcp"
-  #   cidr_blocks = ["0.0.0.0/0"]
-  # }
-
-  # SSH access
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow all outbound traffic
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = {
     Name = "k8s-sg"
   }
+}
+
+# Allow SSH access for management
+resource "aws_vpc_security_group_ingress_rule" "ssh" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "SSH"
+  from_port        = 22
+  to_port          = 22
+  ip_protocol      = "tcp"
+  cidr_ipv4        = "0.0.0.0/0"
+}
+
+# Allow internal communication between nodes
+resource "aws_vpc_security_group_ingress_rule" "internal" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "Internal cluster communication"
+  from_port        = 0
+  to_port          = 0
+  ip_protocol      = "-1"
+  referenced_security_group_id = aws_security_group.k8s_sg.id
+}
+
+# Allow all outbound traffic
+resource "aws_vpc_security_group_egress_rule" "all_outbound" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "Allow all outbound traffic"
+  ip_protocol      = "-1"
+  from_port        = 0
+  to_port          = 0
+  cidr_ipv4        = "0.0.0.0/0"
+}
+
+# Load Balancer Security Group
+resource "aws_security_group" "lb_sg" {
+  name        = "k8s-lb-sg"
+  description = "Security group for Kubernetes load balancer"
+  vpc_id      = aws_vpc.k8s_vpc.id
+
+  tags = {
+    Name = "k8s-lb-sg"
+  }
+}
+
+# Allow HTTP traffic to Load Balancer
+resource "aws_vpc_security_group_ingress_rule" "lb_http" {
+  security_group_id = aws_security_group.lb_sg.id
+  description      = "HTTP from internet"
+  from_port        = 80
+  to_port          = 80
+  ip_protocol      = "tcp"
+  cidr_ipv4        = "0.0.0.0/0"
+}
+
+# Allow Load Balancer to reach container port on nodes
+resource "aws_vpc_security_group_ingress_rule" "container_port" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "Allow traffic from Load Balancer to container port"
+  from_port        = 3000
+  to_port          = 3000
+  ip_protocol      = "tcp"
+  referenced_security_group_id = aws_security_group.lb_sg.id
+}
+
+# Allow Load Balancer outbound traffic
+resource "aws_vpc_security_group_egress_rule" "lb_outbound" {
+  security_group_id = aws_security_group.lb_sg.id
+  description      = "Allow all outbound traffic"
+  ip_protocol      = "-1"
+  from_port        = 0
+  to_port          = 0
+  cidr_ipv4        = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "kubernetes_api" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "Kubernetes API server"
+  from_port        = 6443
+  to_port          = 6443
+  ip_protocol      = "tcp"
+  cidr_ipv4        = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "etcd" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "etcd server client API"
+  from_port        = 2379
+  to_port          = 2380
+  ip_protocol      = "tcp"
+  referenced_security_group_id = aws_security_group.k8s_sg.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "kubelet" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "Kubelet API"
+  from_port        = 10250
+  to_port          = 10250
+  ip_protocol      = "tcp"
+  referenced_security_group_id = aws_security_group.k8s_sg.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "kube_scheduler" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "kube-scheduler"
+  from_port        = 10259
+  to_port          = 10259
+  ip_protocol      = "tcp"
+  referenced_security_group_id = aws_security_group.k8s_sg.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "kube_controller_manager" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "kube-controller-manager"
+  from_port        = 10257
+  to_port          = 10257
+  ip_protocol      = "tcp"
+  referenced_security_group_id = aws_security_group.k8s_sg.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "nodeport" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "NodePort access"
+  from_port        = 30080
+  to_port          = 30080
+  ip_protocol      = "tcp"
+  cidr_ipv4        = "0.0.0.0/0"
 } 

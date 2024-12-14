@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: face-detection-app
-  namespace: default
 spec:
   replicas: 3
   selector:
@@ -16,16 +15,21 @@ spec:
       containers:
         - name: face-detection
           image: danors/next-face-detection:latest
-          imagePullPolicy: Always
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: HOSTNAME
+              value: "0.0.0.0"
+            - name: PORT
+              value: "3000"
+            - name: NEXT_TELEMETRY_DISABLED
+              value: "1"
           ports:
             - containerPort: 3000
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
               cpu: "100m"
             limits:
-              memory: "512Mi"
+              memory: "256Mi"
               cpu: "200m"
-          envFrom:
-            - configMapRef:
-                name: face-detection-config

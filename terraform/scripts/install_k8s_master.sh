@@ -5,6 +5,20 @@ set -e
 apt-get update
 apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 
+# Load required kernel modules
+modprobe overlay
+modprobe br_netfilter
+
+# Set up required sysctl params
+cat > /etc/sysctl.d/kubernetes.conf <<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+# Apply sysctl params without reboot
+sysctl --system
+
 # Add Docker's official GPG key
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 
@@ -22,7 +36,8 @@ apt-get update
 apt-get install -y docker-ce kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 
-# Configure Docker daemon
+# Configure Docker daemon with systemd driver
+mkdir -p /etc/docker
 cat > /etc/docker/daemon.json <<EOF
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -34,9 +49,29 @@ cat > /etc/docker/daemon.json <<EOF
 }
 EOF
 
+# Create systemd directory for docker
+mkdir -p /etc/systemd/system/docker.service.d
+
 # Restart Docker
 systemctl daemon-reload
 systemctl restart docker
+systemctl enable docker
+
+# Configure containerd
+mkdir -p /etc/containerd
+containerd config default | tee /etc/containerd/config.toml
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+systemctl restart containerd
+systemctl enable containerd
+
+# Disable swap
+swapoff -a
+sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+# Reset any previous Kubernetes configuration
+kubeadm reset -f || true
+rm -rf /etc/cni/net.d
+rm -rf $HOME/.kube
 
 # Initialize Kubernetes
 kubeadm init --pod-network-cidr=10.244.0.0/16
@@ -44,8 +79,8 @@ kubeadm init --pod-network-cidr=10.244.0.0/16
 # Set up kubeconfig for the ubuntu user
 export KUBECONFIG=/etc/kubernetes/admin.conf
 mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
 
 # Install Flannel CNI
 kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
@@ -53,6 +88,13 @@ kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/
 # Install NGINX Ingress Controller
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
 
+# Create directory for deployments
 mkdir -p ~/k8s/deployments
+
+# Wait for node to be ready
+until kubectl get nodes | grep -w "Ready"; do
+  echo "Waiting for node to be ready..."
+  sleep 5
+done
 
 echo "Kubernetes master node setup completed!"

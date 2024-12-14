@@ -1,0 +1,24 @@
+# Face Detection Ingress
+# Manages external access to the service
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: face-detection-ingress # Ingress name
+  annotations:
+    # Ingress controller configurations
+    nginx.ingress.kubernetes.io/rewrite-target: / # URL rewrite rule
+    nginx.ingress.kubernetes.io/ssl-redirect: "true" # Force HTTPS
+spec:
+  ingressClassName: nginx # Uses NGINX ingress controller
+  tls:
+    - secretName: face-detection-tls # TLS certificate secret
+  rules:
+    - http:
+        paths:
+          - path: / # Root path
+            pathType: Prefix # Path match type
+            backend:
+              service:
+                name: face-detection-service # Target service
+                port:
+                  number: 80 # Service port

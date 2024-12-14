@@ -1,0 +1,13 @@
+# Face Detection Service
+# Exposes the face detection application to the cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: face-detection-service # Service name
+spec:
+  type: ClusterIP # Internal cluster service type
+  ports:
+    - port: 80 # Service port
+      targetPort: 3000 # Container port to forward to
+  selector:
+    app: face-detection # Selects pods with matching label

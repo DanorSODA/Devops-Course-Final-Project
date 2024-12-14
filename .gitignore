@@ -92,3 +92,5 @@ kubeconfig
 *.temp
 .cache/
 .vscode/
+
+terraform/.terraform.lock.hcl

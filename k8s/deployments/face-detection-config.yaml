@@ -1,0 +1,10 @@
+# Face Detection ConfigMap
+# Contains application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: face-detection-config # ConfigMap name
+data:
+  # Environment variables for the application
+  NODE_ENV: "production" # Runtime environment
+  NEXT_PUBLIC_API_URL: "http://3.90.108.215" # API endpoint URL

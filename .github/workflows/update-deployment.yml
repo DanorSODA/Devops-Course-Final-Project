@@ -1,0 +1,49 @@
+# Workflow name as displayed in GitHub Actions UI
+name: Update K8s Deployment
+
+# Define when this workflow will run
+on:
+  # Triggered by webhook from Docker Hub
+  repository_dispatch:
+    types: [docker-hub-update]
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  update-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout repository and submodules
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+
+      # Install kubectl CLI tool
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      # Create SSH key file for master node access
+      - name: Configure SSH
+        run: |
+          # Create private key file from GitHub secret
+          echo "${{ secrets.K8S_SSH_PRIVATE_KEY }}" > face-detection-ssh-key.pem
+          # Set correct permissions for SSH key
+          chmod 600 face-detection-ssh-key.pem
+
+      # Setup kubectl configuration
+      - name: Setup kubeconfig
+        run: |
+          # Create kubectl config directory
+          mkdir -p ~/.kube
+          # Copy kubeconfig from master node using SSH
+          scp -i face-detection-ssh-key.pem -o StrictHostKeyChecking=no ubuntu@${MASTER_IP}:/etc/kubernetes/admin.conf ~/.kube/config
+          # Set secure permissions on kubeconfig
+          chmod 600 ~/.kube/config
+
+      # Update the deployment to use new image
+      - name: Restart deployment
+        run: |
+          # Trigger a rolling restart of the deployment
+          kubectl rollout restart deployment face-detection-app
+          # Wait for rollout to complete
+          kubectl rollout status deployment face-detection-app

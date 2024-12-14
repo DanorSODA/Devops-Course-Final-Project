@@ -90,6 +90,52 @@ echo "Installing NGINX Ingress Controller..."
 kubectl create namespace ingress-nginx
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/baremetal/deploy.yaml
 
+# Wait for NGINX Ingress Controller to be ready
+echo "Waiting for NGINX Ingress Controller to be ready..."
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=120s
+
+# Create SSL certificate
+echo "Creating SSL certificate..."
+cat <<EOF > openssl.conf
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+distinguished_name = dn
+x509_extensions = v3_ext
+
+[dn]
+C = US
+ST = CA
+L = SFO
+O = MyOrg
+OU = MyUnit
+CN = kubernetes
+
+[v3_ext]
+subjectAltName = @alt_names
+keyUsage = keyEncipherment,dataEncipherment
+extendedKeyUsage = serverAuth
+
+[alt_names]
+IP.1 = 10.0.1.112
+IP.2 = 10.0.1.221
+IP.3 = 10.0.1.60
+EOF
+
+# Generate certificate
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+-keyout tls.key -out tls.crt \
+-config openssl.conf
+
+# Create Kubernetes TLS secret
+kubectl create secret tls face-detection-tls \
+--key tls.key \
+--cert tls.crt
+
 # Create directory for deployments
 mkdir -p ~/k8s/deployments
 
@@ -100,3 +146,4 @@ until kubectl get nodes | grep -w "Ready"; do
 done
 
 echo "Kubernetes master node setup completed!"
+echo "NGINX Ingress Controller and SSL certificate configured!"

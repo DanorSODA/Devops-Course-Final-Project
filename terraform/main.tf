@@ -273,4 +273,13 @@ resource "aws_vpc_security_group_ingress_rule" "nodeport" {
   to_port          = 30080
   ip_protocol      = "tcp"
   cidr_ipv4        = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ingress_nodeport" {
+  security_group_id = aws_security_group.k8s_sg.id
+  description      = "Ingress NodePort access"
+  from_port        = 31652
+  to_port          = 31652
+  ip_protocol      = "tcp"
+  cidr_ipv4        = "0.0.0.0/0"
 } 

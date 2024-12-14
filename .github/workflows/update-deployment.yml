@@ -26,25 +26,9 @@ jobs:
       - name: Configure SSH
         run: |
           # Create private key file from GitHub secret
-          echo "${{ secrets.K8S_SSH_PRIVATE_KEY }}" > k8s_key.pem
+          echo "${{ secrets.K8S_SSH_PRIVATE_KEY }}" > face-detection-ssh-key.pem
           # Set correct permissions for SSH key
-          chmod 600 k8s_key.pem
-
-      # Setup AWS credentials for accessing S3 state
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      # Extract master node IP from Terraform state
-      - name: Get master IP
-        run: |
-          # Download and parse Terraform state file from S3
-          MASTER_IP=$(aws s3 cp s3://DevOps-Tech-Courseterraform-state/k8s-cluster/terraform.tfstate - | jq -r '.outputs.master_public_ip.value')
-          # Save IP to GitHub environment for later steps
-          echo "MASTER_IP=$MASTER_IP" >> $GITHUB_ENV
+          chmod 600 face-detection-ssh-key.pem
 
       # Setup kubectl configuration
       - name: Setup kubeconfig
@@ -52,7 +36,7 @@ jobs:
           # Create kubectl config directory
           mkdir -p ~/.kube
           # Copy kubeconfig from master node using SSH
-          scp -i k8s_key.pem -o StrictHostKeyChecking=no ubuntu@${MASTER_IP}:/etc/kubernetes/admin.conf ~/.kube/config
+          scp -i face-detection-ssh-key.pem -o StrictHostKeyChecking=no ubuntu@${MASTER_IP}:/etc/kubernetes/admin.conf ~/.kube/config
           # Set secure permissions on kubeconfig
           chmod 600 ~/.kube/config
 

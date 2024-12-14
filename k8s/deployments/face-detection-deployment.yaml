@@ -1,21 +1,24 @@
+# Face Detection Application Deployment
+# Manages the deployment of face detection application containers
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: face-detection-app
+  name: face-detection-app # Name of the deployment
 spec:
-  replicas: 3
+  replicas: 3 # Number of pod replicas to maintain
   selector:
     matchLabels:
-      app: face-detection
+      app: face-detection # Label selector to match pods
   template:
     metadata:
       labels:
-        app: face-detection
+        app: face-detection # Pod labels
     spec:
       containers:
-        - name: face-detection
-          image: danors/next-face-detection:latest
+        - name: face-detection # Container name
+          image: danors/next-face-detection:latest # Container image
           env:
+            # Environment configuration for the application
             - name: NODE_ENV
               value: "production"
             - name: HOSTNAME
@@ -25,8 +28,9 @@ spec:
             - name: NEXT_TELEMETRY_DISABLED
               value: "1"
           ports:
-            - containerPort: 3000
+            - containerPort: 3000 # Application port
           resources:
+            # Resource limits and requests
             requests:
               memory: "128Mi"
               cpu: "100m"

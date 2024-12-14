@@ -1,3 +1,8 @@
+# main.tf
+# Main infrastructure configuration for Kubernetes cluster
+
+# Ubuntu AMI data source
+# Fetches the latest Ubuntu 22.04 LTS AMI for the current region
 data "aws_ami" "ubuntu" {
   most_recent = true
   filter {
@@ -8,25 +13,27 @@ data "aws_ami" "ubuntu" {
     name   = "virtualization-type"
     values = ["hvm"]
   }
-  owners = ["099720109477"] # Canonical
+  owners = ["099720109477"] # Canonical's AWS account ID
 }
 
-# VPC
+# VPC Configuration
+# Creates a Virtual Private Cloud for the Kubernetes cluster
 resource "aws_vpc" "k8s_vpc" {
   cidr_block           = var.vpc_cidr
-  enable_dns_hostnames = true
-  enable_dns_support   = true
+  enable_dns_hostnames = true # Enable DNS hostnames for EC2 instances
+  enable_dns_support   = true # Enable DNS support
 
   tags = merge(var.tags, {
     Name = "${var.cluster_name}-vpc"
   })
 }
 
-# Public Subnet
+# Public Subnet Configuration
+# Creates a public subnet within the VPC for the Kubernetes nodes
 resource "aws_subnet" "k8s_subnet" {
   vpc_id                  = aws_vpc.k8s_vpc.id
   cidr_block              = var.subnet_cidr
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = true # Automatically assign public IPs to instances
   availability_zone       = "${var.aws_region}${var.availability_zone}"
 
   tags = merge(var.tags, {
@@ -35,6 +42,7 @@ resource "aws_subnet" "k8s_subnet" {
 }
 
 # Internet Gateway
+# Enables internet access for resources in the VPC
 resource "aws_internet_gateway" "k8s_igw" {
   vpc_id = aws_vpc.k8s_vpc.id
 
@@ -44,6 +52,7 @@ resource "aws_internet_gateway" "k8s_igw" {
 }
 
 # Route Table
+# Defines routing rules for the VPC
 resource "aws_route_table" "k8s_rt" {
   vpc_id = aws_vpc.k8s_vpc.id
 
@@ -57,12 +66,15 @@ resource "aws_route_table" "k8s_rt" {
   }
 }
 
+# Route Table Association
+# Associates the route table with the subnet
 resource "aws_route_table_association" "k8s_rta" {
   subnet_id      = aws_subnet.k8s_subnet.id
   route_table_id = aws_route_table.k8s_rt.id
 }
 
-# Master Node
+# Master Node Configuration
+# Creates the Kubernetes master node EC2 instance
 resource "aws_instance" "k8s_master" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type_master
@@ -95,7 +107,8 @@ resource "aws_instance" "k8s_master" {
   )
 }
 
-# Worker Nodes
+# Worker Nodes Configuration
+# Creates the Kubernetes worker node EC2 instances
 resource "aws_instance" "k8s_workers" {
   count         = var.worker_count
   ami           = data.aws_ami.ubuntu.id
@@ -129,7 +142,10 @@ resource "aws_instance" "k8s_workers" {
   )
 }
 
-# Security Group for K8s nodes (master and workers)
+# Security Group Configurations
+
+# Main Kubernetes Security Group
+# Defines security rules for Kubernetes cluster nodes
 resource "aws_security_group" "k8s_sg" {
   name        = "k8s-face-detection-sg"
   description = "Security group for face detection Kubernetes cluster"
@@ -140,7 +156,8 @@ resource "aws_security_group" "k8s_sg" {
   }
 }
 
-# Allow SSH access for management
+# SSH Access Rule
+# Allows SSH access to the nodes for management
 resource "aws_vpc_security_group_ingress_rule" "ssh" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "SSH"
@@ -150,7 +167,8 @@ resource "aws_vpc_security_group_ingress_rule" "ssh" {
   cidr_ipv4        = "0.0.0.0/0"
 }
 
-# Allow internal communication between nodes
+# Internal Communication Rule
+# Allows all internal communication between cluster nodes
 resource "aws_vpc_security_group_ingress_rule" "internal" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "Internal cluster communication"
@@ -160,7 +178,8 @@ resource "aws_vpc_security_group_ingress_rule" "internal" {
   referenced_security_group_id = aws_security_group.k8s_sg.id
 }
 
-# Allow all outbound traffic
+# Outbound Traffic Rule
+# Allows all outbound traffic from the cluster
 resource "aws_vpc_security_group_egress_rule" "all_outbound" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "Allow all outbound traffic"
@@ -171,6 +190,7 @@ resource "aws_vpc_security_group_egress_rule" "all_outbound" {
 }
 
 # Load Balancer Security Group
+# Defines security rules for the Kubernetes load balancer
 resource "aws_security_group" "lb_sg" {
   name        = "k8s-lb-sg"
   description = "Security group for Kubernetes load balancer"
@@ -181,7 +201,8 @@ resource "aws_security_group" "lb_sg" {
   }
 }
 
-# Allow HTTP traffic to Load Balancer
+# Load Balancer HTTP Rule
+# Allows HTTP traffic to the load balancer
 resource "aws_vpc_security_group_ingress_rule" "lb_http" {
   security_group_id = aws_security_group.lb_sg.id
   description      = "HTTP from internet"
@@ -191,7 +212,8 @@ resource "aws_vpc_security_group_ingress_rule" "lb_http" {
   cidr_ipv4        = "0.0.0.0/0"
 }
 
-# Allow Load Balancer to reach container port on nodes
+# Container Port Access Rule
+# Allows traffic from load balancer to container ports
 resource "aws_vpc_security_group_ingress_rule" "container_port" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "Allow traffic from Load Balancer to container port"
@@ -201,7 +223,8 @@ resource "aws_vpc_security_group_ingress_rule" "container_port" {
   referenced_security_group_id = aws_security_group.lb_sg.id
 }
 
-# Allow Load Balancer outbound traffic
+# Load Balancer Outbound Rule
+# Allows all outbound traffic from the load balancer
 resource "aws_vpc_security_group_egress_rule" "lb_outbound" {
   security_group_id = aws_security_group.lb_sg.id
   description      = "Allow all outbound traffic"
@@ -211,7 +234,8 @@ resource "aws_vpc_security_group_egress_rule" "lb_outbound" {
   cidr_ipv4        = "0.0.0.0/0"
 }
 
-# Kubernetes API server
+# Kubernetes API Server Rule
+# Allows access to the Kubernetes API server
 resource "aws_vpc_security_group_ingress_rule" "kubernetes_api" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "Kubernetes API server"
@@ -221,7 +245,8 @@ resource "aws_vpc_security_group_ingress_rule" "kubernetes_api" {
   cidr_ipv4        = "0.0.0.0/0"
 }
 
-# NGINX Ingress HTTP
+# NGINX Ingress HTTP Rule
+# Allows HTTP traffic to NGINX Ingress controller
 resource "aws_vpc_security_group_ingress_rule" "ingress_nodeport" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "Ingress NodePort access"
@@ -231,7 +256,8 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_nodeport" {
   cidr_ipv4        = "0.0.0.0/0"
 }
 
-# NGINX Ingress HTTPS
+# NGINX Ingress HTTPS Rule
+# Allows HTTPS traffic to NGINX Ingress controller
 resource "aws_vpc_security_group_ingress_rule" "ingress_https_nodeport" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "Ingress HTTPS NodePort access"
@@ -239,4 +265,4 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_https_nodeport" {
   to_port          = 31935
   ip_protocol      = "tcp"
   cidr_ipv4        = "0.0.0.0/0"
-} 
+}

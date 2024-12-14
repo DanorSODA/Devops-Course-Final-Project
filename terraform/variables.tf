@@ -55,7 +55,7 @@ variable "instance_root_volume_size" {
 variable "ssh_key_name" {
   description = "Name of the SSH key pair"
   type        = string
-  default     = "k8s-key"
+  default     = "face-detection-ssh-key"
 }
 
 variable "tags" {

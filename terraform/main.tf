@@ -1,13 +1,3 @@
-terraform {
-  # backend "s3" {
-  #   bucket         = "devops-tech-course-terraform-state"
-  #   key            = "k8s-cluster/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-state-lock"
-  # }
-}
-
 data "aws_ami" "ubuntu" {
   most_recent = true
   filter {
@@ -221,6 +211,7 @@ resource "aws_vpc_security_group_egress_rule" "lb_outbound" {
   cidr_ipv4        = "0.0.0.0/0"
 }
 
+# Kubernetes API server
 resource "aws_vpc_security_group_ingress_rule" "kubernetes_api" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "Kubernetes API server"
@@ -230,51 +221,7 @@ resource "aws_vpc_security_group_ingress_rule" "kubernetes_api" {
   cidr_ipv4        = "0.0.0.0/0"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "etcd" {
-  security_group_id = aws_security_group.k8s_sg.id
-  description      = "etcd server client API"
-  from_port        = 2379
-  to_port          = 2380
-  ip_protocol      = "tcp"
-  referenced_security_group_id = aws_security_group.k8s_sg.id
-}
-
-resource "aws_vpc_security_group_ingress_rule" "kubelet" {
-  security_group_id = aws_security_group.k8s_sg.id
-  description      = "Kubelet API"
-  from_port        = 10250
-  to_port          = 10250
-  ip_protocol      = "tcp"
-  referenced_security_group_id = aws_security_group.k8s_sg.id
-}
-
-resource "aws_vpc_security_group_ingress_rule" "kube_scheduler" {
-  security_group_id = aws_security_group.k8s_sg.id
-  description      = "kube-scheduler"
-  from_port        = 10259
-  to_port          = 10259
-  ip_protocol      = "tcp"
-  referenced_security_group_id = aws_security_group.k8s_sg.id
-}
-
-resource "aws_vpc_security_group_ingress_rule" "kube_controller_manager" {
-  security_group_id = aws_security_group.k8s_sg.id
-  description      = "kube-controller-manager"
-  from_port        = 10257
-  to_port          = 10257
-  ip_protocol      = "tcp"
-  referenced_security_group_id = aws_security_group.k8s_sg.id
-}
-
-resource "aws_vpc_security_group_ingress_rule" "nodeport" {
-  security_group_id = aws_security_group.k8s_sg.id
-  description      = "NodePort access"
-  from_port        = 30080
-  to_port          = 30080
-  ip_protocol      = "tcp"
-  cidr_ipv4        = "0.0.0.0/0"
-}
-
+# NGINX Ingress HTTP
 resource "aws_vpc_security_group_ingress_rule" "ingress_nodeport" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "Ingress NodePort access"
@@ -284,6 +231,7 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_nodeport" {
   cidr_ipv4        = "0.0.0.0/0"
 }
 
+# NGINX Ingress HTTPS
 resource "aws_vpc_security_group_ingress_rule" "ingress_https_nodeport" {
   security_group_id = aws_security_group.k8s_sg.id
   description      = "Ingress HTTPS NodePort access"

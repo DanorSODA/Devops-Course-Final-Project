@@ -1,26 +1,65 @@
 #!/bin/bash
 set -e
 
+set -x  # Print commands as they're executed
+
+# Function to log messages
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a installation.log
+}
+
+# Function to check last command status
+check_status() {
+    if [ $? -eq 0 ]; then
+        log "SUCCESS: $1"
+    else
+        log "ERROR: $1"
+        exit 1
+    fi
+}
+
 # Update and install required packages
 apt-get update
 apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 
-# Load required kernel modules
+# Configure kernel modules
+cat > /etc/modules-load.d/containerd.conf <<EOF
+overlay
+br_netfilter
+EOF
+
 modprobe overlay
 modprobe br_netfilter
 
-# Set up required sysctl params
-cat > /etc/sysctl.d/kubernetes.conf <<EOF
+# Setup required sysctl params
+cat > /etc/sysctl.d/99-kubernetes-cri.conf <<EOF
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
 net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-net.ipv4.ip_forward = 1
 EOF
 
-# Apply sysctl params without reboot
 sysctl --system
 
+# Remove existing containerd configuration if it exists
+rm -f /etc/containerd/config.toml
+
+
+# Install containerd
+apt-get update
+apt-get install -y containerd
+
+# Configure containerd
+mkdir -p /etc/containerd
+containerd config default | tee /etc/containerd/config.toml
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+
+# Restart containerd
+systemctl restart containerd
+systemctl enable containerd
+
 # Add Docker's official GPG key
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # Add Docker repository
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
@@ -57,33 +96,43 @@ systemctl daemon-reload
 systemctl restart docker
 systemctl enable docker
 
-# Configure containerd
-mkdir -p /etc/containerd
-containerd config default | tee /etc/containerd/config.toml
-sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
-systemctl restart containerd
-systemctl enable containerd
-
 # Disable swap
 swapoff -a
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 
 # Reset any previous Kubernetes configuration
 kubeadm reset -f || true
-rm -rf /etc/cni/net.d
+rm -rf /etc/cni/net.d/*
 rm -rf $HOME/.kube
 
-# Initialize Kubernetes
-kubeadm init --pod-network-cidr=10.244.0.0/16
+# Initialize Kubernetes with explicit configurations
+IPADDR=$(hostname -i)
+kubeadm init \
+    --pod-network-cidr=10.244.0.0/16 \
+    --apiserver-advertise-address=$IPADDR \
+    --ignore-preflight-errors=all
 
-# Set up kubeconfig for the ubuntu user
-export KUBECONFIG=/etc/kubernetes/admin.conf
+# Wait for 60 seconds to allow the API server to start
+sleep 60
+
+# Set up kubeconfig with proper permissions
 mkdir -p $HOME/.kube
 cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 chown $(id -u):$(id -g) $HOME/.kube/config
+export KUBECONFIG=$HOME/.kube/config
+
+# Add to bashrc for persistence
+echo "export KUBECONFIG=$HOME/.kube/config" >> $HOME/.bashrc
 
 # Install Flannel CNI
 kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+# Wait for system pods to be ready
+echo "Waiting for system pods to be ready..."
+kubectl wait --namespace kube-system \
+    --for=condition=ready pod \
+    --selector=k8s-app=kube-apiserver \
+    --timeout=300s
 
 # Install NGINX Ingress Controller
 echo "Installing NGINX Ingress Controller..."
@@ -121,9 +170,7 @@ keyUsage = keyEncipherment,dataEncipherment
 extendedKeyUsage = serverAuth
 
 [alt_names]
-IP.1 = 10.0.1.112
-IP.2 = 10.0.1.221
-IP.3 = 10.0.1.60
+IP.1 = ${IPADDR}
 EOF
 
 # Generate certificate

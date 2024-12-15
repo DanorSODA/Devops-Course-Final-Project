@@ -1,0 +1,13 @@
+# terraform.tfvars.staging
+environment = "staging"
+cluster_name = "k8s-staging"
+instance_type_master = "t3.medium"
+instance_type_worker = "t3.small"
+worker_count = 2
+vpc_cidr = "10.1.0.0/16"  # Different CIDR for staging
+subnet_cidr = "10.1.1.0/24"
+tags = {
+  Environment = "staging"
+  Project     = "kubernetes-cluster"
+  Terraform   = "true"
+}

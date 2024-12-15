@@ -18,33 +18,56 @@ data "aws_ami" "ubuntu" {
 
 # VPC Configuration
 # Creates a Virtual Private Cloud for the Kubernetes cluster
-resource "aws_vpc" "k8s_vpc" {
+resource "aws_vpc" "k8s_vpc_prod" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true # Enable DNS hostnames for EC2 instances
   enable_dns_support   = true # Enable DNS support
 
   tags = merge(var.tags, {
-    Name = "${var.cluster_name}-vpc"
+    Name = "${var.cluster_name}-vpc-prod"
   })
+}
+
+resource "aws_vpc" "k8s_vpc_staging" {
+  cidr_block           = "10.1.0.0/16"  # Different CIDR for staging
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name = "k8s-staging-vpc"
+    Environment = "staging"
+  }
 }
 
 # Public Subnet Configuration
 # Creates a public subnet within the VPC for the Kubernetes nodes
-resource "aws_subnet" "k8s_subnet" {
-  vpc_id                  = aws_vpc.k8s_vpc.id
+resource "aws_subnet" "k8s_subnet_prod" {
+  vpc_id                  = aws_vpc.k8s_vpc_prod.id
   cidr_block              = var.subnet_cidr
   map_public_ip_on_launch = true # Automatically assign public IPs to instances
   availability_zone       = "${var.aws_region}${var.availability_zone}"
 
   tags = merge(var.tags, {
-    Name = "${var.cluster_name}-subnet"
+    Name = "${var.cluster_name}-subnet-prod"
   })
+}
+
+resource "aws_subnet" "k8s_subnet_staging" {
+  vpc_id                  = aws_vpc.k8s_vpc_staging.id
+  cidr_block              = "10.1.1.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "${var.aws_region}${var.availability_zone}"
+
+  tags = {
+    Name = "k8s-staging-subnet"
+    Environment = "staging"
+  }
 }
 
 # Internet Gateway
 # Enables internet access for resources in the VPC
 resource "aws_internet_gateway" "k8s_igw" {
-  vpc_id = aws_vpc.k8s_vpc.id
+  vpc_id = aws_vpc.k8s_vpc_prod.id
 
   tags = {
     Name = "k8s-igw"
@@ -54,7 +77,7 @@ resource "aws_internet_gateway" "k8s_igw" {
 # Route Table
 # Defines routing rules for the VPC
 resource "aws_route_table" "k8s_rt" {
-  vpc_id = aws_vpc.k8s_vpc.id
+  vpc_id = aws_vpc.k8s_vpc_prod.id
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -69,17 +92,17 @@ resource "aws_route_table" "k8s_rt" {
 # Route Table Association
 # Associates the route table with the subnet
 resource "aws_route_table_association" "k8s_rta" {
-  subnet_id      = aws_subnet.k8s_subnet.id
+  subnet_id      = aws_subnet.k8s_subnet_prod.id
   route_table_id = aws_route_table.k8s_rt.id
 }
 
 # Master Node Configuration
 # Creates the Kubernetes master node EC2 instance
-resource "aws_instance" "k8s_master" {
+resource "aws_instance" "k8s_master_prod" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type_master
 
-  subnet_id                   = aws_subnet.k8s_subnet.id
+  subnet_id                   = aws_subnet.k8s_subnet_prod.id
   vpc_security_group_ids      = [aws_security_group.k8s_sg.id, aws_security_group.lb_sg.id]
   associate_public_ip_address = true
   key_name                   = aws_key_pair.k8s_key.key_name
@@ -98,23 +121,47 @@ resource "aws_instance" "k8s_master" {
     var.tags,
     var.master_additional_tags,
     {
-      Name        = "${var.cluster_name}-master"
+      Name        = "${var.cluster_name}-master-prod"
       Role        = "master"
-      Environment = var.environment
+      Environment = "production"
       Owner       = var.owner
       CostCenter  = var.cost_center
     }
   )
 }
 
+resource "aws_instance" "k8s_master_staging" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t3.medium"
+  subnet_id     = aws_subnet.k8s_subnet_staging.id
+  vpc_security_group_ids      = [aws_security_group.k8s_sg_staging.id, aws_security_group.lb_sg_staging.id]
+  associate_public_ip_address = true
+  key_name                   = aws_key_pair.k8s_key.key_name
+
+  user_data = file("${path.module}/scripts/install_k8s_master.sh")
+
+  monitoring = var.enable_detailed_monitoring
+
+  root_block_device {
+    volume_size = var.instance_root_volume_size
+    volume_type = var.root_volume_type
+    iops        = var.root_volume_type == "io1" || var.root_volume_type == "io2" ? var.root_volume_iops : null
+  }
+
+  tags = {
+    Name = "k8s-staging-master"
+    Environment = "staging"
+  }
+}
+
 # Worker Nodes Configuration
 # Creates the Kubernetes worker node EC2 instances
-resource "aws_instance" "k8s_workers" {
+resource "aws_instance" "k8s_workers_prod" {
   count         = var.worker_count
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type_worker
 
-  subnet_id                   = aws_subnet.k8s_subnet.id
+  subnet_id                   = aws_subnet.k8s_subnet_prod.id
   vpc_security_group_ids      = [aws_security_group.k8s_sg.id, aws_security_group.lb_sg.id]
   associate_public_ip_address = true
   key_name                   = aws_key_pair.k8s_key.key_name
@@ -133,13 +180,38 @@ resource "aws_instance" "k8s_workers" {
     var.tags,
     var.worker_additional_tags,
     {
-      Name        = "${var.cluster_name}-worker-${count.index + 1}"
+      Name        = "${var.cluster_name}-worker-prod-${count.index + 1}"
       Role        = "worker"
-      Environment = var.environment
+      Environment = "production"
       Owner       = var.owner
       CostCenter  = var.cost_center
     }
   )
+}
+
+resource "aws_instance" "k8s_workers_staging" {
+  count         = 2  # Fixed number for staging
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t3.small"
+  subnet_id     = aws_subnet.k8s_subnet_staging.id
+  vpc_security_group_ids      = [aws_security_group.k8s_sg_staging.id, aws_security_group.lb_sg_staging.id]
+  associate_public_ip_address = true
+  key_name                   = aws_key_pair.k8s_key.key_name
+
+  user_data = file("${path.module}/scripts/install_k8s_worker.sh")
+
+  monitoring = var.enable_detailed_monitoring
+
+  root_block_device {
+    volume_size = var.instance_root_volume_size
+    volume_type = var.root_volume_type
+    iops        = var.root_volume_type == "io1" || var.root_volume_type == "io2" ? var.root_volume_iops : null
+  }
+
+  tags = {
+    Name = "k8s-staging-worker-${count.index + 1}"
+    Environment = "staging"
+  }
 }
 
 # Security Group Configurations
@@ -149,7 +221,7 @@ resource "aws_instance" "k8s_workers" {
 resource "aws_security_group" "k8s_sg" {
   name        = "k8s-face-detection-sg"
   description = "Security group for face detection Kubernetes cluster"
-  vpc_id      = aws_vpc.k8s_vpc.id
+  vpc_id      = aws_vpc.k8s_vpc_prod.id
 
   tags = {
     Name = "k8s-sg"
@@ -194,7 +266,7 @@ resource "aws_vpc_security_group_egress_rule" "all_outbound" {
 resource "aws_security_group" "lb_sg" {
   name        = "k8s-lb-sg"
   description = "Security group for Kubernetes load balancer"
-  vpc_id      = aws_vpc.k8s_vpc.id
+  vpc_id      = aws_vpc.k8s_vpc_prod.id
 
   tags = {
     Name = "k8s-lb-sg"
@@ -263,6 +335,40 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_https_nodeport" {
   description      = "Ingress HTTPS NodePort access"
   from_port        = 31935
   to_port          = 31935
+  ip_protocol      = "tcp"
+  cidr_ipv4        = "0.0.0.0/0"
+}
+
+# Security Groups for Staging
+resource "aws_security_group" "k8s_sg_staging" {
+  name        = "k8s-face-detection-sg-staging"
+  description = "Security group for face detection Kubernetes cluster staging"
+  vpc_id      = aws_vpc.k8s_vpc_staging.id
+
+  tags = {
+    Name = "k8s-sg-staging"
+    Environment = "staging"
+  }
+}
+
+# Load Balancer Security Group for Staging
+resource "aws_security_group" "lb_sg_staging" {
+  name        = "k8s-lb-sg-staging"
+  description = "Security group for Kubernetes load balancer staging"
+  vpc_id      = aws_vpc.k8s_vpc_staging.id
+
+  tags = {
+    Name = "k8s-lb-sg-staging"
+    Environment = "staging"
+  }
+}
+
+# Copy all the security group rules for staging
+resource "aws_vpc_security_group_ingress_rule" "ssh_staging" {
+  security_group_id = aws_security_group.k8s_sg_staging.id
+  description      = "SSH"
+  from_port        = 22
+  to_port          = 22
   ip_protocol      = "tcp"
   cidr_ipv4        = "0.0.0.0/0"
 }

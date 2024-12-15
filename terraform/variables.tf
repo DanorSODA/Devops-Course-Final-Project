@@ -57,7 +57,7 @@ variable "pod_network_cidr" {
 variable "cluster_name" {
   description = "Name prefix for all cluster resources"
   type        = string
-  default     = "k8s"
+  default     = "face-detection"
 }
 
 # Storage Configuration

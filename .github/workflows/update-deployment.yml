@@ -10,7 +10,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  check-requirements:
+    runs-on: ubuntu-latest
+    outputs:
+      can_proceed: ${{ steps.check-secrets.outputs.can_proceed }}
+    steps:
+      - name: Check required secrets
+        id: check-secrets
+        run: |
+          if [ -z "${{ secrets.MASTER_IP }}" ] || [ -z "${{ secrets.FACE_DETECTION_SSH_PRIVATE_KEY }}" ]; then
+            echo "Missing required secrets (MASTER_IP and/or FACE_DETECTION_SSH_PRIVATE_KEY). Deployment cannot proceed."
+            echo "can_proceed=false" >> $GITHUB_OUTPUT
+          else
+            echo "All required secrets are present."
+            echo "can_proceed=true" >> $GITHUB_OUTPUT
+          fi
+
   update-deployment:
+    needs: check-requirements
+    if: needs.check-requirements.outputs.can_proceed == 'true'
     runs-on: ubuntu-latest
     env:
       MASTER_IP: ${{ secrets.MASTER_IP }}

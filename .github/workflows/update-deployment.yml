@@ -12,6 +12,8 @@ on:
 jobs:
   update-deployment:
     runs-on: ubuntu-latest
+    env:
+      MASTER_IP: ${{ secrets.MASTER_IP }}
     steps:
       # Checkout repository and submodules
       - uses: actions/checkout@v3
@@ -26,7 +28,7 @@ jobs:
       - name: Configure SSH
         run: |
           # Create private key file from GitHub secret
-          echo "${{ secrets.K8S_SSH_PRIVATE_KEY }}" > face-detection-ssh-key.pem
+          echo "${{ secrets.FACE_DETECTION_SSH_PRIVATE_KEY }}" > face-detection-ssh-key.pem
           # Set correct permissions for SSH key
           chmod 600 face-detection-ssh-key.pem
 

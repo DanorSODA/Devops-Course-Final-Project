@@ -1,161 +1,184 @@
-# DevOps Final Project
+# DevOps Final Project - Face Detection App Deployment
 
-This README provides an overview and the step-by-step tasks required to complete the deployment of the `next-face-detection-app`  Next.js project using a DevOps pipeline. The project will utilize GitHub Actions for CI/CD, and the infrastructure will be deployed on AWS with tools like Docker, Terraform, Ansible, K3s, and Jenkins. The implementation will follow best practices for infrastructure as code (IaC), containerization, and CI/CD pipelines.
+This project demonstrates a complete DevOps pipeline for deploying a Next.js face detection application using modern DevOps practices and tools. The project uses a microservices architecture, infrastructure as code, and automated CI/CD pipelines.
 
----
+## Application Overview
 
-## Project Repository
-- **Next-face-detection-app Source Repository**: [next-face-detection-app](https://github.com/DanorSODA/next-face-detection-app)
-- **Final Project Repository**: [DevOps-Course-Final-Project](https://github.com/DanorSODA/Devops-Course-Final-Project)
+This project includes a custom-built Next.js application ([next-face-detection-app](https://github.com/DanorSODA/next-face-detection-app)) as a submodule, which:
 
----
+- Implements real-time face detection using webcam stream
+- Built with Next.js and TypeScript
+- use a face-api models for detecting the face landmarks, age, gender and emotion
+- Containerized using Docker
+- Automatically updated through CI/CD pipeline
 
-## Tech Stack
-The following technologies will be used for this project:
-- **CI/CD**: GitHub Actions
+### Application Features
+
+- Live video stream processing
+- Real-time face detection
+- Responsive web interface
+- Optimized Docker container
+
+### Docker Implementation
+
+- Multi-stage build process
+- Optimized image size
+- Configured for both development and production
+- Automated builds via GitHub Actions
+
+## Project Overview
+
+The project deploys the [next-face-detection-app](https://github.com/DanorSODA/next-face-detection-app) (included as a submodule) using a comprehensive DevOps pipeline that includes:
+
+- Infrastructure provisioning with Terraform
+- Kubernetes deployment configuration
+- Automated CI/CD pipelines with GitHub Actions
+- Multi-environment support (Production and Staging)
+
+### Architecture
+
+- **Application**: Next.js face detection application
+- **Infrastructure**: AWS-based Kubernetes cluster
+- **CI/CD**: GitHub Actions pipelines
 - **Containerization**: Docker
-- **Infrastructure as Code**: Terraform
-- **Configuration Management**: Ansible
-- **Container Orchestration**: K3s (Lightweight Kubernetes)
-- **Cloud Provider**: AWS
+- **Orchestration**: Kubernetes
+- **IaC**: Terraform
 
----
+### Project Structure
 
-## Tasks Overview
-### **Phase 1: Repository Setup**
-1. Fork the `next-face-detection-app` repository into your GitHub account.
-2. Clone the forked repository locally and add it as a submodule to your final project repository:
-   ```bash
-   git submodule add https://github.com/DanorSODA/next-face-detection-app
-   ```
-3. Set up the project repository with the following folder structure:
-   ```
-   Devops-Course-Final-Project/
-   |-- next-face-detection-app/         # Submodule for the application source code
-   |-- terraform/           # Terraform configuration files
-   |-- ansible/             # Ansible playbooks for configuration management
-   |-- k8s/                 # K3s deployment YAML files
-   |-- .github/workflows/   # GitHub Actions workflows for CI/CD
-   ```
+```tree
+.
+├── .github/workflows/           # GitHub Actions workflow definitions
+│   ├── quality-checks.yml      # Code quality and Docker build pipeline
+│   ├── update-deployment.yml   # K8s deployment update pipeline
+│   └── update-submodule.yml    # Submodule update automation
+├── k8s/                        # Kubernetes configuration files
+│   └── deployments/            # K8s deployment yaml manifests
+├── terraform/                  # Infrastructure as Code
+│   ├── main.tf                # Main Terraform configuration
+│   ├── variables.tf           # Variable definitions
+│   └── outputs.tf             # Output definitions
+├── next-face-detection-app/    # Application submodule
+├── CONTRIBUTORS.md            # Project contributors
+├── INSTALL.md                 # Installation guide
+├── LICENSE                    # Project license
+├── README.md                  # Project documentation
+├── TASKS.md                   # Project tasks
+└── install.sh                 # Installation script
+```
 
----
+## Prerequisites
 
-### **Phase 2: Cloud Infrastructure with Terraform**
-1. Write Terraform scripts to provision the following AWS infrastructure:
-   - **VPC**: Create a Virtual Private Cloud with public and private subnets.
-   - **EC2 Instances**: Launch instances to serve as K3s nodes.
-   - **RDS Database**: Create an RDS instance for application persistence.
-   - **Security Groups**: Define security groups to allow only necessary traffic.
+- AWS Account with appropriate permissions
+- Docker installed
+- kubectl installed
+- Terraform installed
+- AWS CLI configured
 
-2. Test Terraform configuration locally:
-   ```bash
-   terraform init
-   terraform plan
-   terraform apply
-   ```
-3. Push Terraform scripts to the `terraform/` folder in the repository.
+## Technical Architecture
 
----
+### CI/CD Pipeline with GitHub Actions
 
-### **Phase 3: Configuration Management with Ansible**
-1. Write Ansible playbooks to:
-   - Install Docker and K3s on EC2 instances.
-   - Deploy Jenkins as a containerized application on the K3s cluster.
-   - Configure security settings for K3s and Docker.
-2. Test the Ansible playbooks locally and push them to the `ansible/` folder.
+The project implements three main workflows:
 
----
+1. **Submodule Update Workflow**
 
-### **Phase 4: Deploy the Application on K3s**
-1. Write Kubernetes YAML files to:
-   - Define a Deployment for the `next-face-detection-app` application.
-   - Expose the application using a Service (LoadBalancer type).
-   - Configure environment variables for database access.
-2. Push the Kubernetes YAML files to the `k8s/` folder.
-3. Use `kubectl` commands to apply the YAML files and validate the deployment:
-   ```bash
-   kubectl apply -f k8s/
-   kubectl get pods,svc
-   ```
+   - Automatically detects changes in the next-face-detection-app
+   - Updates the submodule in this repository
+   - Triggers the quality checks pipeline
 
----
+2. **Quality Checks & Docker Build**
 
-### **Phase 5: CI/CD Pipeline with GitHub Actions**
-1. Set up a GitHub Actions workflow for:
-   - **CI Tasks**:
-     - Run static code analysis (e.g., Flake8) on the `next-face-detection-app` source code.
-     - Build and push a Docker image of the application to DockerHub.
-   - **CD Tasks**:
-     - Deploy the application to the K3s cluster using `kubectl`.
+   - Runs after submodule updates
+   - Performs TypeScript, ESLint, and formatting checks
+   - Builds and pushes Docker image to Docker Hub
 
-2. Create a workflow file in `.github/workflows/ci-cd.yml`:
-   ```yaml
-   name: CI/CD Pipeline
+3. **Continuous Deployment**
+   - Triggered by Docker Hub webhooks
+   - Connects to Kubernetes cluster using GitHub Secrets
+   - Updates the application deployment with zero downtime
 
-   on:
-     push:
-       branches:
-         - main
+### Kubernetes Resources
 
-   jobs:
-     build:
-       runs-on: ubuntu-latest
+The application runs on Kubernetes with the following components:
 
-       steps:
-         - name: Checkout Code
-           uses: actions/checkout@v3
+1. **Deployment**
 
-         - name: Set Up Docker
-           uses: docker/setup-buildx-action@v2
+   - Manages application pods
+   - Handles rolling updates
+   - Controls replica count and resource allocation
 
-         - name: Build and Push Docker Image
-           run: |
-             docker build -t <your-dockerhub-username>/next-face-detection-app:latest .
-             docker push <your-dockerhub-username>/next-face-detection-app:latest
+2. **Service**
 
-     deploy:
-       needs: build
-       runs-on: ubuntu-latest
+   - Exposes the application within the cluster
+   - Manages internal load balancing
+   - Routes traffic to application pods
 
-       steps:
-         - name: Configure kubectl
-           uses: azure/setup-kubectl@v3
-           with:
-             version: 'v1.24.0'
+3. **Ingress**
 
-         - name: Deploy to K3s Cluster
-           run: |
-             kubectl apply -f k8s/
-   ```
+   - Handles external access to the service
+   - Manages SSL/TLS termination
+   - Configures routing rules
 
-3. Push the workflow to the `.github/workflows/` directory.
+4. **ConfigMap**
+   - Stores application configuration
+   - Manages environment variables
+   - Enables environment-specific settings
 
----
+### Infrastructure (Terraform)
 
-### **Phase 6: Monitoring and Scaling**
-1. Set up monitoring for the K3s cluster using Prometheus and Grafana.
-2. Configure auto-scaling for the application deployment based on CPU/memory usage.
-3. Test the application for scaling scenarios and log performance metrics.
+Terraform manages AWS infrastructure for both production and staging:
 
----
+1. **Network Resources**
 
-### **Phase 7: Final Steps**
-1. Document all configurations and processes in the `README.md` file.
-2. Test the CI/CD pipeline end-to-end.
-3. Clean up unused resources in AWS to avoid additional costs.
+   - VPC for each environment
+   - Public and private subnets
+   - Internet Gateway
+   - Route tables
+   - Security Groups
 
----
+2. **Compute Resources**
+   - Kubernetes master nodes
+   - Worker nodes
+   - SSH key pairs
+   - Instance configurations
 
-## Deliverables
-- Fully functional AWS infrastructure with Terraform.
-- CI/CD pipeline implemented using GitHub Actions.
-- Application deployed on K3s cluster.
-- Documentation and source code in the final project repository.
+### Deployment Flow
 
----
+1. Code changes pushed to next-face-detection-app
+2. Submodule update triggered automatically
+3. Quality checks and Docker build initiated
+4. New image pushed to Docker Hub
+5. Webhook triggers deployment update
+6. Application updated on Kubernetes cluster
 
-## Additional Notes
-- Use best practices for security, including encrypting sensitive data using AWS KMS or GitHub Secrets.
-- Regularly monitor AWS costs and optimize infrastructure for cost-efficiency.
-- Reference official documentation for Terraform, Ansible, Kubernetes, and GitHub Actions for advanced configurations.
+### Environments
 
+1. **Production**
+
+   - High availability setup
+   - Multiple worker nodes
+   - Production-grade resources
+
+2. **Staging**
+   - Testing environment
+   - Reduced resource allocation
+   - Development validation
+
+### Security
+
+- AWS security groups for network isolation
+- SSH key authentication for server access
+- GitHub Secrets for sensitive data
+- HTTPS enforcement for web traffic
+
+### Setup and Installation
+
+- [Installation Guide](INSTALL.md) - Detailed setup instructions
+- [Installation Script](install.sh) - Automated setup script
+
+### Project Information
+
+- [Contributors](CONTRIBUTORS.md) - Project team and contributions
+- [Tasks](TASKS.md) - Completed and future tasks
+- [License](LICENSE) - Project license

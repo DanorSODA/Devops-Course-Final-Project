@@ -181,4 +181,3 @@ Terraform manages AWS infrastructure for both production and staging:
 
 - [Contributors](CONTRIBUTORS.md) - Project team and contributions
 - [Tasks](TASKS.md) - Completed and future tasks
-- [License](LICENSE) - Project license

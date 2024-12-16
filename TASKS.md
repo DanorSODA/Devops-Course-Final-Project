@@ -59,7 +59,6 @@
 
 - [ ] Replace bash scripts with Ansible playbooks
 - [ ] Create roles for different components
-- [ ] Implement idempotent configurations
 - [ ] Add inventory management
 - [ ] Create reusable playbooks
 
@@ -69,7 +68,6 @@
 - [ ] Add network segmentation
 - [ ] Implement secret rotation
 - [ ] Set up VPN access
-- [ ] Add intrusion detection
 - [ ] Implement security scanning
 
 ### 3. Additional Resources
@@ -82,7 +80,6 @@
 
 ### 4. Logging System
 
-- [ ] Set up ELK stack
 - [ ] Implement log aggregation
 - [ ] Create monitoring dashboards
 - [ ] Set up alerts

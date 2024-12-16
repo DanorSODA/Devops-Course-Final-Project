@@ -174,7 +174,7 @@ Terraform manages AWS infrastructure for both production and staging:
 
 ### Setup and Installation
 
-- [Installation Guide](INSTALL.md) - Detailed setup instructions
+- [Installation Guide](install.md) - Detailed setup instructions
 - [Installation Script](install.sh) - Automated setup script
 
 ### Project Information

@@ -62,8 +62,4 @@
 
 ### Yossi Avni
 
-- Gmail: [@YossiAvni](yossiavni@gmail.com)
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- Gmail: [yossiavni@gmail.com](mailto:yossiavni@gmail.com)

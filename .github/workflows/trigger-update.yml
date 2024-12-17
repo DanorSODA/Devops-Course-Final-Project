@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Trigger deployment repo workflow
         env:
-          PAT: ${{ secrets.PAT_TOKEN }}
+          PAT: ${{ secrets.PAT }}
         run: |
           curl -L \
             -X POST \

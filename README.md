@@ -68,12 +68,15 @@ When developers push changes, it triggers an automated pipeline that runs qualit
 ### 2. 🏗️ Infrastructure Deployment
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4299e1', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4299e1', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff', 'lineColor': '#a0aec0'}}}%%
 graph TD
-    A([terraform init]):::init --> B([terraform plan]):::plan
-    B --> C([terraform apply]):::apply
-    C --> D([AWS Resources]):::aws
-    D --> E([K8s Cluster]):::k8s
+    subgraph "Infrastructure Deployment Flow"
+        style Infrastructure_Deployment_Flow fill:#ffffff,stroke:#e2e8f0
+        A([terraform init]):::init --> B([terraform plan]):::plan
+        B --> C([terraform apply]):::apply
+        C --> D([AWS Resources]):::aws
+        D --> E([K8s Cluster]):::k8s
+    end
 
     classDef init fill:#4299e1,stroke:#3182ce,color:#fff
     classDef plan fill:#48bb78,stroke:#38a169,color:#fff
@@ -127,21 +130,24 @@ The application runs in a Kubernetes cluster with multiple pods for high availab
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4299e1', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff', 'lineColor': '#a0aec0'}}}%%
 graph TD
-    A([AWS Infrastructure]):::aws --> B([VPC]):::vpc
-    B --> SG1([Security Groups]):::sg
-    B --> C([K8s Cluster]):::k8s
+    subgraph "AWS Infrastructure"
+        style AWS_Infrastructure fill:#ffffff,stroke:#e2e8f0
+        A([AWS Infrastructure]):::aws --> B([VPC]):::vpc
+        B --> SG1([Security Groups]):::sg
+        B --> C([K8s Cluster]):::k8s
 
-    SG1 -.secures.-> C
-    C --> D([Production]):::prod
-    C --> E([Staging]):::stage
+        SG1 -.secures.-> C
+        C --> D([Production]):::prod
+        C --> E([Staging]):::stage
 
-    D --> DP([3 Pod Replicas]):::pod
-    E --> SP([2 Pod Replicas]):::pod
+        D --> DP([3 Pod Replicas]):::pod
+        E --> SP([2 Pod Replicas]):::pod
 
-    SG2([Load Balancer SG]):::sg -.secures.-> D
-    SG3([K8s SG]):::sg -.secures.-> D
-    SG2 -.secures.-> E
-    SG3 -.secures.-> E
+        SG2([Load Balancer SG]):::sg -.secures.-> D
+        SG3([K8s SG]):::sg -.secures.-> D
+        SG2 -.secures.-> E
+        SG3 -.secures.-> E
+    end
 
     classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff
     classDef vpc fill:#4299e1,stroke:#3182ce,color:#fff

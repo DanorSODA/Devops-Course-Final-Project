@@ -26,9 +26,40 @@ This project includes a custom-built Next.js application ([next-face-detection-a
 - Configured for both development and production
 - Automated builds via GitHub Actions
 
+## 🛠️ Prerequisites
+
+- ☁️ AWS Account with appropriate permissions
+- 🐳 Docker installed
+- ⚓ kubectl installed
+- 🏗️ Terraform installed
+- 🔧 AWS CLI configured
+
 ## 🔄 Project Flow
 
-### 1. 🏗️ Infrastructure Deployment
+### 1. 🔄 CI/CD Pipeline
+
+```mermaid
+graph LR
+    subgraph "CI Pipeline"
+        A[Code Push] --> B[Update Submodule]
+        B --> C[Quality Checks]
+        C --> D[Build Docker Image]
+        D --> E[Push to Registry]
+    end
+    subgraph "CD Pipeline"
+        E --> F[Webhook Trigger]
+        F --> G[Update K8s]
+        G --> H[Rolling Update]
+        H --> I[Health Check]
+    end
+```
+
+<details>
+<summary>💡 CI/CD Details</summary>
+When developers push changes, it triggers an automated pipeline that runs quality checks, builds a new Docker image, and updates the Kubernetes deployment with zero downtime.
+</details>
+
+### 2. 🏗️ Infrastructure Deployment
 
 ```mermaid
 graph TD
@@ -43,23 +74,33 @@ graph TD
 The infrastructure is provisioned using Terraform, which creates all necessary AWS resources including VPC, subnets, EC2 instances for Kubernetes nodes, and security groups. Once complete, a fully functional Kubernetes cluster is ready for deployments.
 </details>
 
-### 2. 👨‍💻 Development Flow
+### 3. ⚓ Kubernetes Implementation
 
 ```mermaid
-graph LR
-    A[Developer Push] --> B[Update Submodule]
-    B --> C[Quality Checks]
-    C --> D[Docker Build]
-    D --> E[Push to Docker Hub]
-    E --> F[Update K8s Deployment]
+graph TD
+    subgraph "Kubernetes Cluster"
+        A[Ingress] --> B[Service]
+        B --> C[Deployment]
+        C --> D[Pod 1]
+        C --> E[Pod 2]
+        C --> F[Pod 3]
+
+        G[ConfigMap] -.-> D
+        G -.-> E
+        G -.-> F
+
+        H[Secrets] -.-> D
+        H -.-> E
+        H -.-> F
+    end
 ```
 
 <details>
-<summary>💡 Development Details</summary>
-When developers push changes, it triggers an automated pipeline that runs quality checks, builds a new Docker image, and updates the Kubernetes deployment with zero downtime.
+<summary>💡 Kubernetes Details</summary>
+The application runs in a Kubernetes cluster with multiple pods for high availability. Configuration is managed through ConfigMaps and Secrets, while traffic is routed through Services and Ingress.
 </details>
 
-### 3. 🏛️ Infrastructure Overview
+### 4. 🏛️ Infrastructure Overview
 
 ```mermaid
 graph TD
@@ -75,14 +116,6 @@ graph TD
 <summary>💡 Infrastructure Overview Details</summary>
 The project runs on AWS with separate environments for production and staging, each with its own Kubernetes cluster. Production runs with higher availability using 3 pod replicas, while staging uses 2 replicas for cost efficiency.
 </details>
-
-## 🛠️ Prerequisites
-
-- ☁️ AWS Account with appropriate permissions
-- 🐳 Docker installed
-- ⚓ kubectl installed
-- 🏗️ Terraform installed
-- 🔧 AWS CLI configured
 
 ## 🏗️ Technical Architecture
 

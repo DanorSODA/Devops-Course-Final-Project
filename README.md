@@ -39,19 +39,25 @@ This project includes a custom-built Next.js application ([next-face-detection-a
 ### 1. 🔄 CI/CD Pipeline
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#5a67d8', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#f0f4fd'}}}%%
 graph LR
     subgraph "CI Pipeline"
-        A[Code Push] --> B[Update Submodule]
-        B --> C[Quality Checks]
-        C --> D[Build Docker Image]
-        D --> E[Push to Registry]
+        A([Code Push]):::action --> B([Update Submodule]):::action
+        B --> C([Quality Checks]):::action
+        C --> D([Build Docker Image]):::action
+        D --> E([Push to Registry]):::action
     end
     subgraph "CD Pipeline"
-        E --> F[Webhook Trigger]
-        F --> G[Update K8s]
-        G --> H[Rolling Update]
-        H --> I[Health Check]
+        E --> F([Webhook Trigger]):::trigger
+        F --> G([Update K8s]):::deploy
+        G --> H([Rolling Update]):::deploy
+        H --> I([Health Check]):::status
     end
+
+    classDef action fill:#5a67d8,stroke:#4c51bf,color:#fff
+    classDef trigger fill:#f6ad55,stroke:#ed8936,color:#fff
+    classDef deploy fill:#48bb78,stroke:#38a169,color:#fff
+    classDef status fill:#4299e1,stroke:#3182ce,color:#fff
 ```
 
 <details>
@@ -62,11 +68,18 @@ When developers push changes, it triggers an automated pipeline that runs qualit
 ### 2. 🏗️ Infrastructure Deployment
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4299e1', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff'}}}%%
 graph TD
-    A[terraform init] --> B[terraform plan]
-    B --> C[terraform apply]
-    C --> D[AWS Resources Created]
-    D --> E[K8s Cluster Ready]
+    A([terraform init]):::init --> B([terraform plan]):::plan
+    B --> C([terraform apply]):::apply
+    C --> D([AWS Resources]):::aws
+    D --> E([K8s Cluster]):::k8s
+
+    classDef init fill:#4299e1,stroke:#3182ce,color:#fff
+    classDef plan fill:#48bb78,stroke:#38a169,color:#fff
+    classDef apply fill:#5a67d8,stroke:#4c51bf,color:#fff
+    classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff
+    classDef k8s fill:#667eea,stroke:#5a67d8,color:#fff
 ```
 
 <details>
@@ -77,22 +90,31 @@ The infrastructure is provisioned using Terraform, which creates all necessary A
 ### 3. ⚓ Kubernetes Implementation
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#667eea', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff'}}}%%
 graph TD
     subgraph "Kubernetes Cluster"
-        A[Ingress] --> B[Service]
-        B --> C[Deployment]
-        C --> D[Pod 1]
-        C --> E[Pod 2]
-        C --> F[Pod 3]
+        N([Namespace]):::namespace --> A([Ingress]):::ingress
+        N --> B([Service]):::svc
+        N --> C([Deployment]):::deploy
+        N --> G([ConfigMap]):::config
 
-        G[ConfigMap] -.-> D
+        A --> B
+        B --> C
+        C --> D([Pod 1]):::pod
+        C --> E([Pod 2]):::pod
+        C --> F([Pod 3]):::pod
+
+        G -.-> D
         G -.-> E
         G -.-> F
-
-        H[Secrets] -.-> D
-        H -.-> E
-        H -.-> F
     end
+
+    classDef namespace fill:#e53e3e,stroke:#c53030,color:#fff
+    classDef ingress fill:#f6ad55,stroke:#ed8936,color:#fff
+    classDef svc fill:#4299e1,stroke:#3182ce,color:#fff
+    classDef deploy fill:#48bb78,stroke:#38a169,color:#fff
+    classDef pod fill:#667eea,stroke:#5a67d8,color:#fff
+    classDef config fill:#9f7aea,stroke:#805ad5,color:#fff
 ```
 
 <details>
@@ -103,13 +125,31 @@ The application runs in a Kubernetes cluster with multiple pods for high availab
 ### 4. 🏛️ Infrastructure Overview
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4299e1', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff'}}}%%
 graph TD
-    A[AWS Infrastructure] --> B[VPC]
-    B --> C[K8s Cluster]
-    C --> D[Production]
-    C --> E[Staging]
-    D --> F[3 Pod Replicas]
-    E --> G[2 Pod Replicas]
+    A([AWS Infrastructure]):::aws --> B([VPC]):::vpc
+    B --> SG1([Security Groups]):::sg
+    B --> C([K8s Cluster]):::k8s
+
+    SG1 -.-> C
+    C --> D([Production]):::prod
+    C --> E([Staging]):::stage
+
+    D --> DP([3 Pod Replicas]):::pod
+    E --> SP([2 Pod Replicas]):::pod
+
+    SG2([Load Balancer SG]):::sg -.-> D
+    SG3([K8s SG]):::sg -.-> D
+    SG2 -.-> E
+    SG3 -.-> E
+
+    classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff
+    classDef vpc fill:#4299e1,stroke:#3182ce,color:#fff
+    classDef sg fill:#fc8181,stroke:#f56565,color:#fff
+    classDef k8s fill:#667eea,stroke:#5a67d8,color:#fff
+    classDef prod fill:#48bb78,stroke:#38a169,color:#fff
+    classDef stage fill:#9f7aea,stroke:#805ad5,color:#fff
+    classDef pod fill:#5a67d8,stroke:#4c51bf,color:#fff
 ```
 
 <details>
@@ -200,6 +240,6 @@ graph LR
 
 ## 📚 Additional Information
 
-- 📖 [Installation Guide](install.md)
+- ���� [Installation Guide](install.md)
 - 👥 [Contributors](CONTRIBUTORS.md)
 - ✅ [Tasks](TASKS.md)

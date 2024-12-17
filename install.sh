@@ -242,8 +242,5 @@ ${GREEN}Next steps:${NC}
    $ terraform plan
    $ terraform apply
 
-4. Configure kubectl with your cluster:
-   $ aws eks update-kubeconfig --region <your-region> --name <cluster-name>
-
 For more information, please refer to the project documentation.
 EOF

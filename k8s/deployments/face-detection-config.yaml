@@ -4,6 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: face-detection-config # ConfigMap name
+  namespace: face-detection
 data:
   # Environment variables for the application
   NODE_ENV: "production" # Runtime environment

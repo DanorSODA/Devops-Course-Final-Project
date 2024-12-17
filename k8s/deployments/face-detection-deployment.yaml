@@ -4,6 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: face-detection-app # Name of the deployment
+  namespace: face-detection
 spec:
   replicas: 3 # Number of pod replicas to maintain
   selector:

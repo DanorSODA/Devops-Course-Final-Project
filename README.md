@@ -54,6 +54,11 @@ The project deploys the [next-face-detection-app](https://github.com/DanorSODA/n
 │   └── update-submodule.yml    # Submodule update automation
 ├── k8s/                        # Kubernetes configuration files
 │   └── deployments/            # K8s deployment yaml manifests
+│   └── ingress.yaml/           # K8s ingress yaml manifest
+│   └── namespace.yaml/         # K8s namespace yaml manifest
+│   └── service.yaml/           # K8s service yaml manifest
+│   └── config.yaml/            # K8s config yaml manifest
+│   └── deployment.yaml/        # K8s deployment yaml manifest
 ├── terraform/                  # Infrastructure as Code
 │   ├── main.tf                # Main Terraform configuration
 │   ├── variables.tf           # Variable definitions
@@ -102,25 +107,30 @@ The project implements three main workflows:
 
 The application runs on Kubernetes with the following components:
 
-1. **Deployment**
+1. **Namespace**
+
+   - Named 'face-detection'
+   - Provides logical separation of workloads
+
+2. **Deployment**
 
    - Manages application pods
    - Handles rolling updates
    - Controls replica count and resource allocation
 
-2. **Service**
+3. **Service**
 
    - Exposes the application within the cluster
    - Manages internal load balancing
    - Routes traffic to application pods
 
-3. **Ingress**
+4. **Ingress**
 
    - Handles external access to the service
    - Manages SSL/TLS termination
    - Configures routing rules
 
-4. **ConfigMap**
+5. **ConfigMap**
    - Stores application configuration
    - Manages environment variables
    - Enables environment-specific settings

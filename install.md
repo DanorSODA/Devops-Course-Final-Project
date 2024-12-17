@@ -92,6 +92,10 @@ Apply Kubernetes configurations:
 
 ```bash
 cd ~/k8s/deployments/
+# Create namespace first
+kubectl apply -f face-detection-namespace.yaml
+
+# Apply other resources in the namespace
 kubectl apply -f face-detection-config.yaml
 kubectl apply -f face-detection-deployment.yaml
 kubectl apply -f face-detection-service.yaml
@@ -101,33 +105,33 @@ kubectl apply -f face-detection-ingress.yaml
 ### 6. Verify Deployment
 
 ```bash
-kubectl get pods
-kubectl get services
-kubectl get ingress
+kubectl get pods -n face-detection
+kubectl get services -n face-detection
+kubectl get ingress -n face-detection
 ```
 
 Check pod status:
 
 ```bash
-kubectl get pods -o wide
+kubectl get pods -n face-detection -o wide
 ```
 
 Check service status:
 
 ```bash
-kubectl get services
+kubectl get services -n face-detection
 ```
 
 Check ingress status:
 
 ```bash
-kubectl get ingress
+kubectl get ingress -n face-detection
 ```
 
 Check logs:
 
 ```bash
-kubectl logs -l app=face-detection
+kubectl logs -l app=face-detection -n face-detection
 ```
 
 Test the application:

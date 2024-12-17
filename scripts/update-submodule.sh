@@ -5,11 +5,18 @@ set -e
 
 echo "Starting submodule update process..."
 
+# Configure git to use HTTPS with token
+git config --global url."https://${TOKEN}@github.com/".insteadOf "https://github.com/"
+
 # Navigate to the submodule directory
 cd "$(git rev-parse --show-toplevel)/next-face-detection-app" || {
     echo "Error: Failed to navigate to submodule directory"
     exit 1
 }
+
+# Configure git for the submodule
+git config user.name "GitHub Actions"
+git config user.email "github-actions@github.com"
 
 # Fetch and pull the latest changes
 echo "Fetching latest changes..."
@@ -48,6 +55,10 @@ cd .. || {
     exit 1
 }
 
+# Configure git for the main repository
+git config user.name "GitHub Actions"
+git config user.email "github-actions@github.com"
+
 # Stage and commit the submodule update
 echo "Committing submodule update..."
 # Check if there are actually changes to commit
@@ -66,9 +77,9 @@ git commit -m "CI: Update submodule to latest version" || {
     exit 1
 }
 
-# Push the changes
+# Push the changes using token
 echo "Pushing changes..."
-git push origin main || {
+git push "https://${TOKEN}@github.com/DanorSODA/Devops-Course-Final-Project.git" main || {
     echo "Error: Failed to push changes"
     exit 1
 }

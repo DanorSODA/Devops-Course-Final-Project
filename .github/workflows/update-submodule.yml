@@ -20,6 +20,7 @@ jobs:
         with:
           submodules: "recursive"
           token: ${{ secrets.PAT }}
+          fetch-depth: 0
 
       - name: Configure Git
         run: |
@@ -31,4 +32,4 @@ jobs:
           chmod +x ./scripts/update-submodule.sh
           ./scripts/update-submodule.sh
         env:
-          TOKEN: "${{ secrets.PAT }}"
+          TOKEN: ${{ secrets.PAT }}

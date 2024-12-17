@@ -240,6 +240,7 @@ ${GREEN}Next steps:${NC}
 
 3. Review and apply Terraform configuration:
    $ terraform plan
+   $ terraform validate
    $ terraform apply
 
 For more information, please refer to the project documentation.

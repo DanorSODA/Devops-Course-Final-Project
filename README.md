@@ -38,20 +38,18 @@ This project includes a custom-built Next.js application ([next-face-detection-a
 
 ### 1. 🔄 CI/CD Pipeline
 
+<div align="center">
+
 ```mermaid
 graph LR
-    subgraph "CI Pipeline"
-        A[Code Push] --> B[Update Submodule]
-        B --> C[Quality Checks]
-        C --> D[Build Docker Image]
-        D --> E[Push to Registry]
-    end
-    subgraph "CD Pipeline"
-        E --> F[Webhook Trigger]
-        F --> G[Update K8s]
-        G --> H[Rolling Update]
-        H --> I[Health Check]
-    end
+    A[Code Push] --> B[Update Submodule]
+    B --> C[Quality Checks]
+    C --> D[Build Docker Image]
+    D --> E[Push to Registry]
+    E --> F[Webhook Trigger]
+    F --> G[Update K8s]
+    G --> H[Rolling Update]
+    H --> I[Health Check]
 
     classDef default fill:#ffffff,stroke:#e2e8f0,color:#4a5568,font-family:arial
     classDef ci fill:#5a67d8,stroke:#4c51bf,color:#fff,font-family:arial
@@ -61,6 +59,8 @@ graph LR
     class F,G,H,I cd
 ```
 
+</div>
+
 <details>
 <summary>💡 CI/CD Details</summary>
 When developers push changes, it triggers an automated pipeline that runs quality checks, builds a new Docker image, and updates the Kubernetes deployment with zero downtime.
@@ -68,39 +68,23 @@ When developers push changes, it triggers an automated pipeline that runs qualit
 
 ### 2. 🏗️ Infrastructure Deployment
 
+<div align="center">
+
 ```mermaid
-%%{init: {
-  'theme': 'base',
-  'themeVariables': {
-    'primaryColor': '#4299e1',
-    'edgeLabelBackground':'#ffffff',
-    'tertiaryColor': '#ebf8ff',
-    'lineColor': '#a0aec0',
-    'fontFamily': 'arial',
-    'fontSize': '16px'
-  }
-}}%%
 graph TD
-    subgraph "Infrastructure Deployment"
-        style Infrastructure_Deployment fill:#ffffff,stroke:#e2e8f0
-
-        space1[ ]:::invisible
-
-        A([terraform init]):::init --> B([terraform plan]):::plan
-        B --> C([terraform apply]):::apply
-        C --> D([AWS Resources]):::aws
-        D --> E([K8s Cluster]):::k8s
-
-        space2[ ]:::invisible
-    end
+    A([terraform init]):::init --> B([terraform plan]):::plan
+    B --> C([terraform apply]):::apply
+    C --> D([AWS Resources]):::aws
+    D --> E([K8s Cluster]):::k8s
 
     classDef init fill:#4299e1,stroke:#3182ce,color:#fff,font-family:arial,font-weight:bold
     classDef plan fill:#48bb78,stroke:#38a169,color:#fff,font-family:arial,font-weight:bold
     classDef apply fill:#5a67d8,stroke:#4c51bf,color:#fff,font-family:arial,font-weight:bold
     classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff,font-family:arial,font-weight:bold
     classDef k8s fill:#667eea,stroke:#5a67d8,color:#fff,font-family:arial,font-weight:bold
-    classDef invisible fill:none,stroke:none
 ```
+
+</div>
 
 <details>
 <summary>💡 Infrastructure Details</summary>
@@ -109,36 +93,24 @@ The infrastructure is provisioned using Terraform, which creates all necessary A
 
 ### 3. ⚓ Kubernetes Implementation
 
+<div align="center">
+
 ```mermaid
-%%{init: {
-  'theme': 'base',
-  'themeVariables': {
-    'primaryColor': '#667eea',
-    'edgeLabelBackground':'#ffffff',
-    'tertiaryColor': '#ebf8ff',
-    'lineColor': '#a0aec0',
-    'fontFamily': 'arial',
-    'fontSize': '16px'
-  }
-}}%%
 graph TD
-    subgraph "Kubernetes Cluster"
-        style Kubernetes_Cluster fill:#ffffff,stroke:#e2e8f0
-        N([Namespace]):::namespace --> A([Ingress]):::ingress
-        N --> B([Service]):::svc
-        N --> C([Deployment]):::deploy
-        N --> G([ConfigMap]):::config
+    N([Namespace]):::namespace --> A([Ingress]):::ingress
+    N --> B([Service]):::svc
+    N --> C([Deployment]):::deploy
+    N --> G([ConfigMap]):::config
 
-        A --> B
-        B --> C
-        C --> D([Pod 1]):::pod
-        C --> E([Pod 2]):::pod
-        C --> F([Pod 3]):::pod
+    A --> B
+    B --> C
+    C --> D([Pod 1]):::pod
+    C --> E([Pod 2]):::pod
+    C --> F([Pod 3]):::pod
 
-        G -.configures.-> D
-        G -.configures.-> E
-        G -.configures.-> F
-    end
+    G -.configures.-> D
+    G -.configures.-> E
+    G -.configures.-> F
 
     classDef namespace fill:#e53e3e,stroke:#c53030,color:#fff,font-family:arial,font-weight:bold
     classDef ingress fill:#f6ad55,stroke:#ed8936,color:#fff,font-family:arial,font-weight:bold
@@ -148,6 +120,8 @@ graph TD
     classDef config fill:#9f7aea,stroke:#805ad5,color:#fff,font-family:arial,font-weight:bold
 ```
 
+</div>
+
 <details>
 <summary>💡 Kubernetes Details</summary>
 The application runs in a Kubernetes cluster with multiple pods for high availability. Configuration is managed through ConfigMaps and Secrets, while traffic is routed through Services and Ingress.
@@ -155,37 +129,25 @@ The application runs in a Kubernetes cluster with multiple pods for high availab
 
 ### 4. 🏛️ Infrastructure Overview
 
+<div align="center">
+
 ```mermaid
-%%{init: {
-  'theme': 'base',
-  'themeVariables': {
-    'primaryColor': '#4299e1',
-    'edgeLabelBackground':'#ffffff',
-    'tertiaryColor': '#ebf8ff',
-    'lineColor': '#a0aec0',
-    'fontFamily': 'arial',
-    'fontSize': '16px'
-  }
-}}%%
 graph TD
-    subgraph "AWS Infrastructure"
-        style AWS_Infrastructure fill:#ffffff,stroke:#e2e8f0
-        A([AWS Infrastructure]):::aws --> B([VPC]):::vpc
-        B --> SG1([Security Groups]):::sg
-        B --> C([K8s Cluster]):::k8s
+    A([AWS Infrastructure]):::aws --> B([VPC]):::vpc
+    B --> SG1([Security Groups]):::sg
+    B --> C([K8s Cluster]):::k8s
 
-        SG1 -.secures.-> C
-        C --> D([Production]):::prod
-        C --> E([Staging]):::stage
+    SG1 -.secures.-> C
+    C --> D([Production]):::prod
+    C --> E([Staging]):::stage
 
-        D --> DP([3 Pod Replicas]):::pod
-        E --> SP([2 Pod Replicas]):::pod
+    D --> DP([3 Pod Replicas]):::pod
+    E --> SP([2 Pod Replicas]):::pod
 
-        SG2([Load Balancer SG]):::sg -.secures.-> D
-        SG3([K8s SG]):::sg -.secures.-> D
-        SG2 -.secures.-> E
-        SG3 -.secures.-> E
-    end
+    SG2([Load Balancer SG]):::sg -.secures.-> D
+    SG3([K8s SG]):::sg -.secures.-> D
+    SG2 -.secures.-> E
+    SG3 -.secures.-> E
 
     classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff,font-family:arial,font-weight:bold
     classDef vpc fill:#4299e1,stroke:#3182ce,color:#fff,font-family:arial,font-weight:bold
@@ -195,6 +157,8 @@ graph TD
     classDef stage fill:#9f7aea,stroke:#805ad5,color:#fff,font-family:arial,font-weight:bold
     classDef pod fill:#5a67d8,stroke:#4c51bf,color:#fff,font-family:arial,font-weight:bold
 ```
+
+</div>
 
 <details>
 <summary>💡 Infrastructure Overview Details</summary>

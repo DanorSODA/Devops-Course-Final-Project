@@ -90,7 +90,7 @@ The infrastructure is provisioned using Terraform, which creates all necessary A
 ### 3. ⚓ Kubernetes Implementation
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#667eea', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#667eea', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff', 'lineColor': '#a0aec0'}}}%%
 graph TD
     subgraph "Kubernetes Cluster"
         N([Namespace]):::namespace --> A([Ingress]):::ingress
@@ -104,9 +104,9 @@ graph TD
         C --> E([Pod 2]):::pod
         C --> F([Pod 3]):::pod
 
-        G -.-> D
-        G -.-> E
-        G -.-> F
+        G -.configures.-> D
+        G -.configures.-> E
+        G -.configures.-> F
     end
 
     classDef namespace fill:#e53e3e,stroke:#c53030,color:#fff
@@ -125,23 +125,23 @@ The application runs in a Kubernetes cluster with multiple pods for high availab
 ### 4. 🏛️ Infrastructure Overview
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4299e1', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4299e1', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff', 'lineColor': '#a0aec0'}}}%%
 graph TD
     A([AWS Infrastructure]):::aws --> B([VPC]):::vpc
     B --> SG1([Security Groups]):::sg
     B --> C([K8s Cluster]):::k8s
 
-    SG1 -.-> C
+    SG1 -.secures.-> C
     C --> D([Production]):::prod
     C --> E([Staging]):::stage
 
     D --> DP([3 Pod Replicas]):::pod
     E --> SP([2 Pod Replicas]):::pod
 
-    SG2([Load Balancer SG]):::sg -.-> D
-    SG3([K8s SG]):::sg -.-> D
-    SG2 -.-> E
-    SG3 -.-> E
+    SG2([Load Balancer SG]):::sg -.secures.-> D
+    SG3([K8s SG]):::sg -.secures.-> D
+    SG2 -.secures.-> E
+    SG3 -.secures.-> E
 
     classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff
     classDef vpc fill:#4299e1,stroke:#3182ce,color:#fff

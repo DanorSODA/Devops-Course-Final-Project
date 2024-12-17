@@ -1,26 +1,26 @@
-# Installation Guide
+# 📥 Installation Guide
 
 This guide provides detailed instructions for setting up the Face Detection App deployment environment.
 
-## Prerequisites
+## ✅ Prerequisites
 
 Before beginning the installation, ensure you have:
 
-- AWS Account with appropriate permissions
-- Git installed
-- Terminal access
-- Sudo/Administrator privileges
+- 🔑 AWS Account with appropriate permissions
+- 📦 Git installed
+- 💻 Terminal access
+- 👑 Sudo/Administrator privileges
 
-## Automated Installation
+## 🚀 Automated Installation
 
-### 1. Clone the Repository:
+### 1. 📂 Clone the Repository:
 
 ```bash
 git clone --recursive https://github.com/DanorSODA/Devops-Course-Final-Project
 cd Devops-Course-Final-Project
 ```
 
-### 2. Run the Installation Script:
+### 2. ⚙️ Run the Installation Script:
 
 ```bash
 chmod +x install.sh
@@ -29,27 +29,27 @@ chmod +x install.sh
 
 The installation script will:
 
-- Detect your operating system
-- Install required dependencies
-- Configure necessary tools
-- Verify installations
+- 🔍 Detect your operating system
+- 📦 Install required dependencies
+- ⚙️ Configure necessary tools
+- ✅ Verify installations
 
-## Post-Installation Setup
+## 🛠️ Post-Installation Setup
 
-### 1. Configure AWS Credentials
+### 1. 🔑 Configure AWS Credentials
 
 ```bash
 aws configure
 ```
 
-### 2. Initialize Terraform
+### 2. 🏗️ Initialize Terraform
 
 ```bash
 cd terraform
 terraform init
 ```
 
-### 3. Apply Terraform Configuration
+### 3. 🚀 Apply Terraform Configuration
 
 ```bash
 terraform plan
@@ -64,7 +64,7 @@ prod_worker_public_ips = ["X.X.X.X", "X.X.X.X"]
 staging_master_public_ip = "Y.Y.Y.Y"
 staging_worker_public_ips = ["Y.Y.Y.Y", "Y.Y.Y.Y"]
 
-### 4. Set Up SSH Access
+### 4. 🔒 Set Up SSH Access
 
 The Terraform configuration creates an SSH key pair. The private key is saved as `face-detection-ssh-key.pem` in the terraform directory.
 
@@ -74,12 +74,12 @@ Test the connection to the master node:
 ssh -i terraform/face-detection-ssh-key.pem ubuntu@<prod/staging_master_public_ip>
 ```
 
-### 5. Deploy Kubernetes Resources
+### 5. ⚓ Deploy Kubernetes Resources
 
 Copy deployment files to master node:
 
 ```bash
-scp -i terraform/face-detection-ssh-key.pem -r k8s/deployments/*.yaml ubuntu@<prod_master_public_ip>:~/k8s/deployments/
+scp -i terraform/face-detection-ssh-key.pem -r k8s/deployments/*.yaml ubuntu@<prod/staging_master_public_ip>:~/k8s/deployments/
 ```
 
 SSH into master node:
@@ -102,7 +102,7 @@ kubectl apply -f face-detection-service.yaml
 kubectl apply -f face-detection-ingress.yaml
 ```
 
-### 6. Verify Deployment
+### 6. ✅ Verify Deployment
 
 ```bash
 kubectl get pods -n face-detection
@@ -140,7 +140,7 @@ Test the application:
 curl http://<prod/staging_ingress_host>/api/v1/detect
 ```
 
-### 7. Configure GitHub Secrets
+### 7. 🔐 Configure GitHub Secrets
 
 After successful deployment, you need to set up GitHub Secrets for the CD pipeline to work:
 
@@ -176,34 +176,34 @@ cat terraform/face-detection-ssh-key.pem
 
 These secrets are required for:
 
-- GitHub Actions to connect to your Kubernetes cluster
-- Automated deployment updates
-- Continuous deployment pipeline
+- 🔄 GitHub Actions to connect to your Kubernetes cluster
+- 🚀 Automated deployment updates
+- ⚡ Continuous deployment pipeline
 
 Verify the secrets are set correctly in your GitHub repository settings before running any workflows.
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
-### Common Issues
+### 🚨 Common Issues
 
 1. **AWS CLI Configuration Issues**
 
-   - Check credentials configuration
-   - Verify region settings
-   - Test AWS CLI access
+   - ✅ Check credentials configuration
+   - 🌍 Verify region settings
+   - 🔍 Test AWS CLI access
 
 2. **Terraform Deployment Issues**
 
-   - Verify AWS provider configuration
-   - Check resource dependencies
-   - Review error messages
+   - ⚙️ Verify AWS provider configuration
+   - 🔄 Check resource dependencies
+   - 📝 Review error messages
 
 3. **Kubernetes Deployment Issues**
-   - Check pod status
-   - Review service configurations
-   - Verify ingress setup
+   - 🔍 Check pod status
+   - ⚙️ Review service configurations
+   - 🌐 Verify ingress setup
 
-### Environment-Specific Solutions
+### 🛠️ Environment-Specific Solutions
 
 #### AWS Configuration
 

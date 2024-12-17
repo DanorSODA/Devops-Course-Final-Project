@@ -39,25 +39,40 @@ This project includes a custom-built Next.js application ([next-face-detection-a
 ### 1. 🔄 CI/CD Pipeline
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#5a67d8', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#f0f4fd'}}}%%
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#5a67d8',
+    'edgeLabelBackground':'#ffffff',
+    'tertiaryColor': '#f0f4fd',
+    'lineColor': '#a0aec0',
+    'fontFamily': 'arial',
+    'fontSize': '16px'
+  }
+}}%%
 graph LR
-    subgraph "CI Pipeline"
-        A([Code Push]):::action --> B([Update Submodule]):::action
-        B --> C([Quality Checks]):::action
-        C --> D([Build Docker Image]):::action
-        D --> E([Push to Registry]):::action
-    end
-    subgraph "CD Pipeline"
-        E --> F([Webhook Trigger]):::trigger
-        F --> G([Update K8s]):::deploy
-        G --> H([Rolling Update]):::deploy
-        H --> I([Health Check]):::status
+    subgraph "CI/CD Pipeline Flow"
+        style CI/CD_Pipeline_Flow fill:#ffffff,stroke:#e2e8f0
+        subgraph "CI Pipeline"
+            style CI_Pipeline fill:#f8fafc,stroke:#e2e8f0
+            A([Code Push]):::action --> B([Update Submodule]):::action
+            B --> C([Quality Checks]):::action
+            C --> D([Build Docker Image]):::action
+            D --> E([Push to Registry]):::action
+        end
+        subgraph "CD Pipeline"
+            style CD_Pipeline fill:#f8fafc,stroke:#e2e8f0
+            E --> F([Webhook Trigger]):::trigger
+            F --> G([Update K8s]):::deploy
+            G --> H([Rolling Update]):::deploy
+            H --> I([Health Check]):::status
+        end
     end
 
-    classDef action fill:#5a67d8,stroke:#4c51bf,color:#fff
-    classDef trigger fill:#f6ad55,stroke:#ed8936,color:#fff
-    classDef deploy fill:#48bb78,stroke:#38a169,color:#fff
-    classDef status fill:#4299e1,stroke:#3182ce,color:#fff
+    classDef action fill:#5a67d8,stroke:#4c51bf,color:#fff,font-family:arial,font-weight:bold
+    classDef trigger fill:#f6ad55,stroke:#ed8936,color:#fff,font-family:arial,font-weight:bold
+    classDef deploy fill:#48bb78,stroke:#38a169,color:#fff,font-family:arial,font-weight:bold
+    classDef status fill:#4299e1,stroke:#3182ce,color:#fff,font-family:arial,font-weight:bold
 ```
 
 <details>
@@ -68,21 +83,37 @@ When developers push changes, it triggers an automated pipeline that runs qualit
 ### 2. 🏗️ Infrastructure Deployment
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4299e1', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff', 'lineColor': '#a0aec0'}}}%%
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#4299e1',
+    'edgeLabelBackground':'#ffffff',
+    'tertiaryColor': '#ebf8ff',
+    'lineColor': '#a0aec0',
+    'fontFamily': 'arial',
+    'fontSize': '16px'
+  }
+}}%%
 graph TD
-    subgraph "Infrastructure Deployment Flow"
-        style Infrastructure_Deployment_Flow fill:#ffffff,stroke:#e2e8f0
+    subgraph "Infrastructure Deployment"
+        style Infrastructure_Deployment fill:#ffffff,stroke:#e2e8f0
+
+        space1[ ]:::invisible
+
         A([terraform init]):::init --> B([terraform plan]):::plan
         B --> C([terraform apply]):::apply
         C --> D([AWS Resources]):::aws
         D --> E([K8s Cluster]):::k8s
+
+        space2[ ]:::invisible
     end
 
-    classDef init fill:#4299e1,stroke:#3182ce,color:#fff
-    classDef plan fill:#48bb78,stroke:#38a169,color:#fff
-    classDef apply fill:#5a67d8,stroke:#4c51bf,color:#fff
-    classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff
-    classDef k8s fill:#667eea,stroke:#5a67d8,color:#fff
+    classDef init fill:#4299e1,stroke:#3182ce,color:#fff,font-family:arial,font-weight:bold
+    classDef plan fill:#48bb78,stroke:#38a169,color:#fff,font-family:arial,font-weight:bold
+    classDef apply fill:#5a67d8,stroke:#4c51bf,color:#fff,font-family:arial,font-weight:bold
+    classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff,font-family:arial,font-weight:bold
+    classDef k8s fill:#667eea,stroke:#5a67d8,color:#fff,font-family:arial,font-weight:bold
+    classDef invisible fill:none,stroke:none
 ```
 
 <details>
@@ -93,9 +124,20 @@ The infrastructure is provisioned using Terraform, which creates all necessary A
 ### 3. ⚓ Kubernetes Implementation
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#667eea', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff', 'lineColor': '#a0aec0'}}}%%
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#667eea',
+    'edgeLabelBackground':'#ffffff',
+    'tertiaryColor': '#ebf8ff',
+    'lineColor': '#a0aec0',
+    'fontFamily': 'arial',
+    'fontSize': '16px'
+  }
+}}%%
 graph TD
     subgraph "Kubernetes Cluster"
+        style Kubernetes_Cluster fill:#ffffff,stroke:#e2e8f0
         N([Namespace]):::namespace --> A([Ingress]):::ingress
         N --> B([Service]):::svc
         N --> C([Deployment]):::deploy
@@ -112,12 +154,12 @@ graph TD
         G -.configures.-> F
     end
 
-    classDef namespace fill:#e53e3e,stroke:#c53030,color:#fff
-    classDef ingress fill:#f6ad55,stroke:#ed8936,color:#fff
-    classDef svc fill:#4299e1,stroke:#3182ce,color:#fff
-    classDef deploy fill:#48bb78,stroke:#38a169,color:#fff
-    classDef pod fill:#667eea,stroke:#5a67d8,color:#fff
-    classDef config fill:#9f7aea,stroke:#805ad5,color:#fff
+    classDef namespace fill:#e53e3e,stroke:#c53030,color:#fff,font-family:arial,font-weight:bold
+    classDef ingress fill:#f6ad55,stroke:#ed8936,color:#fff,font-family:arial,font-weight:bold
+    classDef svc fill:#4299e1,stroke:#3182ce,color:#fff,font-family:arial,font-weight:bold
+    classDef deploy fill:#48bb78,stroke:#38a169,color:#fff,font-family:arial,font-weight:bold
+    classDef pod fill:#667eea,stroke:#5a67d8,color:#fff,font-family:arial,font-weight:bold
+    classDef config fill:#9f7aea,stroke:#805ad5,color:#fff,font-family:arial,font-weight:bold
 ```
 
 <details>
@@ -128,7 +170,17 @@ The application runs in a Kubernetes cluster with multiple pods for high availab
 ### 4. 🏛️ Infrastructure Overview
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4299e1', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#ebf8ff', 'lineColor': '#a0aec0'}}}%%
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#4299e1',
+    'edgeLabelBackground':'#ffffff',
+    'tertiaryColor': '#ebf8ff',
+    'lineColor': '#a0aec0',
+    'fontFamily': 'arial',
+    'fontSize': '16px'
+  }
+}}%%
 graph TD
     subgraph "AWS Infrastructure"
         style AWS_Infrastructure fill:#ffffff,stroke:#e2e8f0
@@ -149,13 +201,13 @@ graph TD
         SG3 -.secures.-> E
     end
 
-    classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff
-    classDef vpc fill:#4299e1,stroke:#3182ce,color:#fff
-    classDef sg fill:#fc8181,stroke:#f56565,color:#fff
-    classDef k8s fill:#667eea,stroke:#5a67d8,color:#fff
-    classDef prod fill:#48bb78,stroke:#38a169,color:#fff
-    classDef stage fill:#9f7aea,stroke:#805ad5,color:#fff
-    classDef pod fill:#5a67d8,stroke:#4c51bf,color:#fff
+    classDef aws fill:#f6ad55,stroke:#ed8936,color:#fff,font-family:arial,font-weight:bold
+    classDef vpc fill:#4299e1,stroke:#3182ce,color:#fff,font-family:arial,font-weight:bold
+    classDef sg fill:#fc8181,stroke:#f56565,color:#fff,font-family:arial,font-weight:bold
+    classDef k8s fill:#667eea,stroke:#5a67d8,color:#fff,font-family:arial,font-weight:bold
+    classDef prod fill:#48bb78,stroke:#38a169,color:#fff,font-family:arial,font-weight:bold
+    classDef stage fill:#9f7aea,stroke:#805ad5,color:#fff,font-family:arial,font-weight:bold
+    classDef pod fill:#5a67d8,stroke:#4c51bf,color:#fff,font-family:arial,font-weight:bold
 ```
 
 <details>

@@ -1,4 +1,13 @@
+# This file defines the Kubernetes namespace for the face detection application
+# A namespace provides a logical isolation for resources within the cluster
+
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: face-detection
+  name: face-detection # The name of the namespace
+  labels:
+    name: face-detection # Label to identify the namespace
+    environment: production # Label to indicate the environment
+    app: face-detection # Label to indicate the application
+  annotations:
+    description: "Namespace for face detection application components" # Description of the namespace purpose

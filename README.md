@@ -232,6 +232,6 @@ The project runs on AWS with separate environments for production and staging, e
 
 ## 📚 Additional Information
 
-- ���� [Installation Guide](install.md)
+- 📝 [Installation Guide](install.md)
 - 👥 [Contributors](CONTRIBUTORS.md)
 - ✅ [Tasks](TASKS.md)

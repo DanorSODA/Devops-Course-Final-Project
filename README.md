@@ -88,6 +88,22 @@ The project runs on AWS with separate environments for production and staging, e
 
 ### 🔄 CI/CD Pipeline with GitHub Actions
 
+```mermaid
+graph LR
+    subgraph "CI Pipeline"
+        A[Code Push] --> B[Update Submodule]
+        B --> C[Quality Checks]
+        C --> D[Build Docker Image]
+        D --> E[Push to Registry]
+    end
+    subgraph "CD Pipeline"
+        E --> F[Webhook Trigger]
+        F --> G[Update K8s]
+        G --> H[Rolling Update]
+        H --> I[Health Check]
+    end
+```
+
 1. **📦 Submodule Update Workflow**
 
    - Automatically detects changes in the next-face-detection-app

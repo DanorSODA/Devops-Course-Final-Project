@@ -41,6 +41,7 @@ This project includes a custom-built Next.js application ([next-face-detection-a
 <div align="center">
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'arial' }, "flowchart": {"htmlLabels": true, "curve": "basis"}, "sequence": {"showSequenceNumbers": false}, 'themeCSS': '.mermaid-control-btn { display: none; }'} }%%
 graph LR
     A[Code Push] --> B[Update Submodule]
     B --> C[Quality Checks]
@@ -71,6 +72,7 @@ When developers push changes, it triggers an automated pipeline that runs qualit
 <div align="center">
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'arial' }, "flowchart": {"htmlLabels": true, "curve": "basis"}, "sequence": {"showSequenceNumbers": false}, 'themeCSS': '.mermaid-control-btn { display: none; }'} }%%
 graph TD
     A([terraform init]):::init --> B([terraform plan]):::plan
     B --> C([terraform apply]):::apply
@@ -96,6 +98,7 @@ The infrastructure is provisioned using Terraform, which creates all necessary A
 <div align="center">
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'arial' }, "flowchart": {"htmlLabels": true, "curve": "basis"}, "sequence": {"showSequenceNumbers": false}, 'themeCSS': '.mermaid-control-btn { display: none; }'} }%%
 graph TD
     N([Namespace]):::namespace --> A([Ingress]):::ingress
     N --> B([Service]):::svc
@@ -132,6 +135,7 @@ The application runs in a Kubernetes cluster with multiple pods for high availab
 <div align="center">
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'arial' }, "flowchart": {"htmlLabels": true, "curve": "basis"}, "sequence": {"showSequenceNumbers": false}, 'themeCSS': '.mermaid-control-btn { display: none; }'} }%%
 graph TD
     A([AWS Infrastructure]):::aws --> B([VPC]):::vpc
     B --> SG1([Security Groups]):::sg

@@ -8,10 +8,14 @@ on:
 jobs:
   trigger:
     runs-on: ubuntu-latest
+    env:
+      TOKEN: ${{ secrets.PAT_TOKEN }}
+
     steps:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ env.TOKEN }}
           repository: DanorSODA/Devops-Course-Final-Project
           event-type: update-submodule
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'

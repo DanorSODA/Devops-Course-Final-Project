@@ -39,40 +39,26 @@ This project includes a custom-built Next.js application ([next-face-detection-a
 ### 1. 🔄 CI/CD Pipeline
 
 ```mermaid
-%%{init: {
-  'theme': 'base',
-  'themeVariables': {
-    'primaryColor': '#5a67d8',
-    'edgeLabelBackground':'#ffffff',
-    'tertiaryColor': '#f0f4fd',
-    'lineColor': '#a0aec0',
-    'fontFamily': 'arial',
-    'fontSize': '16px'
-  }
-}}%%
 graph LR
-    subgraph "CI/CD Pipeline Flow"
-        style CI/CD_Pipeline_Flow fill:#ffffff,stroke:#e2e8f0
-        subgraph "CI Pipeline"
-            style CI_Pipeline fill:#f8fafc,stroke:#e2e8f0
-            A([Code Push]):::action --> B([Update Submodule]):::action
-            B --> C([Quality Checks]):::action
-            C --> D([Build Docker Image]):::action
-            D --> E([Push to Registry]):::action
-        end
-        subgraph "CD Pipeline"
-            style CD_Pipeline fill:#f8fafc,stroke:#e2e8f0
-            E --> F([Webhook Trigger]):::trigger
-            F --> G([Update K8s]):::deploy
-            G --> H([Rolling Update]):::deploy
-            H --> I([Health Check]):::status
-        end
+    subgraph "CI Pipeline"
+        A[Code Push] --> B[Update Submodule]
+        B --> C[Quality Checks]
+        C --> D[Build Docker Image]
+        D --> E[Push to Registry]
+    end
+    subgraph "CD Pipeline"
+        E --> F[Webhook Trigger]
+        F --> G[Update K8s]
+        G --> H[Rolling Update]
+        H --> I[Health Check]
     end
 
-    classDef action fill:#5a67d8,stroke:#4c51bf,color:#fff,font-family:arial,font-weight:bold
-    classDef trigger fill:#f6ad55,stroke:#ed8936,color:#fff,font-family:arial,font-weight:bold
-    classDef deploy fill:#48bb78,stroke:#38a169,color:#fff,font-family:arial,font-weight:bold
-    classDef status fill:#4299e1,stroke:#3182ce,color:#fff,font-family:arial,font-weight:bold
+    classDef default fill:#ffffff,stroke:#e2e8f0,color:#4a5568,font-family:arial
+    classDef ci fill:#5a67d8,stroke:#4c51bf,color:#fff,font-family:arial
+    classDef cd fill:#48bb78,stroke:#38a169,color:#fff,font-family:arial
+
+    class A,B,C,D,E ci
+    class F,G,H,I cd
 ```
 
 <details>
@@ -218,22 +204,6 @@ The project runs on AWS with separate environments for production and staging, e
 ## 🏗️ Technical Architecture
 
 ### 🔄 CI/CD Pipeline with GitHub Actions
-
-```mermaid
-graph LR
-    subgraph "CI Pipeline"
-        A[Code Push] --> B[Update Submodule]
-        B --> C[Quality Checks]
-        C --> D[Build Docker Image]
-        D --> E[Push to Registry]
-    end
-    subgraph "CD Pipeline"
-        E --> F[Webhook Trigger]
-        F --> G[Update K8s]
-        G --> H[Rolling Update]
-        H --> I[Health Check]
-    end
-```
 
 1. **📦 Submodule Update Workflow**
 
